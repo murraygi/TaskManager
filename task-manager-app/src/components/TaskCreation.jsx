@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AddIcon from "@mui/icons-material/Add";
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Fab } from "@mui/material";
 import { Zoom } from "@mui/material";
 
@@ -57,7 +57,7 @@ function TaskCreation(props) {
         />
         <Zoom in={isExpanded}>
           <Fab onClick={submitTask}>
-            <AddIcon />
+            <ArrowForwardIcon />
           </Fab>
         </Zoom>
       </form>
