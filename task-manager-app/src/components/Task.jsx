@@ -9,7 +9,8 @@ function Task(props) {
   return (
     <div className="task">
       <h1>{props.title}</h1>
-      <p>{props.content}</p>
+      <p className="taskPriority">Priority: {props.priority || "Not set"}</p>
+      <p className="taskContent">{props.content}</p>
       <button onClick={handleClick}>
         <DeleteIcon />
       </button>

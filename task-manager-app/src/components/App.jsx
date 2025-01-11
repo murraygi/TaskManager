@@ -32,6 +32,7 @@ function App() {
             id={index}
             title={taskItem.title}
             content={taskItem.content}
+            priority={taskItem.priority}
             onDelete={deleteTask}
           />
         );

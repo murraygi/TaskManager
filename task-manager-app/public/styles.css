@@ -6,17 +6,45 @@
 html {
   font-family: "Open Sans", sans-serif;
 }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Initially hide overflow */
+}
+
+@media screen and (max-width: 768px) {
+  html, body {
+    height: 100vh; /* Limit height to viewport height */
+    overflow: hidden;
+  }
+}
+
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
 body {
   background: #eee;
   background-image: url("https://www.transparenttextures.com/patterns/axiom-pattern.png");
   padding: 0 16px;
+  overflow: hidden;
+
 }
 
 header {
   background-color: #1e3799;
-  margin: auto -16px;
+  margin: 0;
   padding: 16px 32px;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+  width: 100vw; 
+  position: absolute; 
+  top: 0; 
+  left: 0;
+  box-sizing: border-box;
+  z-index: 10;
 }
 
 header h1 {
@@ -37,7 +65,7 @@ header .header-content {
 }
 
 footer {
-  position: absolute;
+  position: fixed;
   text-align: center;
   bottom: 0;
   width: 100%;
@@ -46,51 +74,77 @@ footer {
 
 footer p {
   color: #ccc;
+  margin: 0;
 }
+
 .task {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   background: #fff;
   border-radius: 7px;
   box-shadow: 0 2px 5px #ccc;
-  padding: 10px 15px;
+  padding: 15px;
   margin: 8px 0;
 }
 
 .task h1 {
   font-size: 1.1em;
-  margin-bottom: 6px;
+  flex: 1 1 50%;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-.task p {
-  font-size: 1.1em;
-  margin-bottom: 10px;
-  white-space: pre-wrap;
+.task .taskContent {
+  flex: 2;
+  flex-shrink: 0;
+  display: block;
+}
+
+.task .taskPriority {
+  display: flex;
+  justify-content: end;
+  flex: 1 1 50%;
   word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .task button {
   position: relative;
   float: right;
-  margin-right: 10px;
+  flex-shrink: 0;
   color: #1e3799;
   border: none;
   width: 36px;
   height: 36px;
   cursor: pointer;
   outline: none;
+  margin-top: 1em;
+}
+
+@media screen and (max-width: 768px) {
+  .task h1, .task .taskContent, .task .taskPriority {
+    font-size: 0.6em;
+  }
 }
 
 form.create-task {
+  width: 100%;
   position: relative;
-  width: 1200px;
-  margin: 30px auto 20px auto;
+  margin-top: 5%;
   background: #fff;
   padding: 15px;
   border-radius: 7px;
   box-shadow: 0 1px 5px rgb(138, 137, 137);
 }
+
+@media screen and (max-width: 768px) {
+  form.create-task {
+    margin-top: 25%;
+  }
+}
+
 form.create-task input,
 form.create-task textarea {
   width: 100%;
@@ -101,6 +155,7 @@ form.create-task textarea {
   font-family: inherit;
   resize: none;
 }
+
 form.create-task button {
   position: absolute;
   right: 18px;
@@ -111,4 +166,5 @@ form.create-task button {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   outline: none;
+  margin-top: 5%;
 }
