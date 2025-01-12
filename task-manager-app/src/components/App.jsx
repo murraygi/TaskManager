@@ -10,13 +10,20 @@ function App() {
   const [editingTaskId, setEditingTaskId] = useState(null);
 
   function addTask(newTask) {
-    setTasks(prevTasks => {
-      return [...prevTasks, newTask];
-    });
+    const newId = tasks.length > 0 ? tasks[tasks.length - 1].id + 1 : 0; // Increment last task's id
+    setTasks((prevTasks) => [...prevTasks, { ...newTask, id: newId, completed: false }]);
+  }  
+
+  function toggleComplete(id) {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
   }
 
   function deleteTask(id) {
-    setTasks((prevTasks) => prevTasks.filter((_, index) => index !== id));
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
     if (editingTaskId === id) {
       setEditingTaskId(null); // Exit edit mode if the edited task is deleted
     }
@@ -38,28 +45,33 @@ function App() {
     <div>
       <Header />
       <TaskCreation onAdd={addTask} />
-      {tasks.map((taskItem, index) => {
-        return editingTaskId === index ? (
-          <TaskEditMode
-            key={index}
-            id={index}
-            title={taskItem.title}
-            content={taskItem.content}
-            priority={taskItem.priority}
-            onSave={saveTask}
-          />
-        ) : (
-          <Task
-            key={index}
-            id={index}
-            title={taskItem.title}
-            content={taskItem.content}
-            priority={taskItem.priority}
-            onDelete={deleteTask}
-            onEdit={() => editTask(index)}
-          />
-        );
-      })}
+      {tasks
+        .slice() // Create a copy of tasks to avoid mutating the original array
+        .sort((a, b) => a.completed - b.completed) // Sort: incomplete first
+        .map((taskItem) => (
+          editingTaskId === taskItem.id ? (
+            <TaskEditMode
+              key={taskItem.id}
+              id={taskItem.id}
+              title={taskItem.title}
+              content={taskItem.content}
+              priority={taskItem.priority}
+              onSave={saveTask}
+            />
+          ) : (
+            <Task
+              key={taskItem.id}
+              id={taskItem.id}
+              title={taskItem.title}
+              content={taskItem.content}
+              priority={taskItem.priority}
+              completed={taskItem.completed}
+              onToggleComplete={toggleComplete}
+              onDelete={deleteTask}
+              onEdit={() => editTask(taskItem.id)}
+            />
+          )
+        ))}
       <Footer />
     </div>
   );

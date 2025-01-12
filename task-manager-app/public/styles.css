@@ -11,27 +11,22 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Initially hide overflow */
 }
 
 @media screen and (max-width: 768px) {
   html, body {
     height: 100vh; /* Limit height to viewport height */
-    overflow: hidden;
   }
 }
 
 #root {
   height: 100vh;
-  overflow: hidden;
 }
 
 body {
   background: #eee;
   background-image: url("https://www.transparenttextures.com/patterns/axiom-pattern.png");
   padding: 0 16px;
-  overflow: hidden;
-
 }
 
 header {
@@ -79,35 +74,55 @@ footer p {
 
 .task {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  flex-direction: column; /* Stack content vertically */
+  flex-wrap: nowrap;
   background: #fff;
   border-radius: 7px;
   box-shadow: 0 2px 5px #ccc;
   padding: 15px;
   margin: 8px 0;
+  width: 100%; /* Ensure it fits the container */
+  box-sizing: border-box;
 }
 
-.task h1 {
+.task h2 {
   font-size: 1.1em;
-  flex: 1 1 50%;
-  white-space: nowrap;
+  flex: 1;
   overflow: hidden;
 }
 
 .task .taskContent {
-  flex: 2;
-  flex-shrink: 0;
-  display: block;
+  flex: 2 1 auto; /* Take up available space and allow wrapping */
+  word-wrap: break-word; /* Ensure content wraps within the container */
+  overflow-wrap: break-word;
+  margin-top: 8px; /* Add spacing between content and other elements */
 }
 
-.task .taskPriority {
+.task-footer {
   display: flex;
-  justify-content: end;
-  flex: 1 1 50%;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  justify-content: space-between; /* Space priority on the left and buttons on the right */
+  align-items: center; /* Vertically align priority and buttons */
+  margin-top: auto; /* Push footer to the bottom of the task */
+  padding-top: 10px; /* Add spacing above footer */
+  gap: 10px; /* Add spacing between the buttons and priority (optional) */
+}
+
+.taskPriority {
+  text-align: left; /* Align priority text to the left */
+  margin: 0; /* Remove default margin */
+  flex: 1; /* Allow priority to take up available space */
+}
+
+.task-footer button {
+  background: none; /* Remove default button styles */
+  border: none;
+  cursor: pointer;
+  color: #1e3799; /* Example color */
+  margin-left: 10px; /* Add spacing between buttons */
+}
+
+.task-footer button:hover {
+  color: #4caf50; /* Hover effect for buttons */
 }
 
 .task button {
@@ -121,12 +136,6 @@ footer p {
   cursor: pointer;
   outline: none;
   margin-top: 1em;
-}
-
-@media screen and (max-width: 768px) {
-  .task h1, .task .taskContent, .task .taskPriority {
-    font-size: 0.6em;
-  }
 }
 
 @media screen and (max-width: 768px) {
@@ -250,7 +259,19 @@ form.create-task button:hover {
   margin: 5px 0 10px 0;
 }
 
-.task-buttons {
+.task.completed {
+  background-color: #d3ffd3;
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+
+.task-header {
   display: flex;
-  gap: 5%;
+  align-items: center; /* Align checkbox and title vertically */
+  gap: 10px; /* Add space between checkbox and title */
+  flex: 1 1 auto; /* Allow this section to grow/shrink */
+}
+
+.task-header h2 {
+  margin: 0;
 }

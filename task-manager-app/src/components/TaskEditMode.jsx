@@ -30,7 +30,7 @@ function TaskEditMode(props) {
           onChange={handleChange}
           value={task.title}
           placeholder="Title"
-          maxLength="20"
+          maxLength="15"
         />
         <select name="priority" value={task.priority} onChange={handleChange}>
           <option value="">Select Priority</option>
