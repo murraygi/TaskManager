@@ -13,63 +13,91 @@ function TaskCreation(props) {
     priority: "",
   });
 
+  const [validationErrors, setValidationErrors] = useState({});
+
   const formRef = useRef(null);
 
-  //Handle changes for inputs and dropdown
+  // Handle changes for inputs and dropdown
   function handleChange(event) {
-    const { name, value } = event.target; //Get the name and value of the changed field
+    const { name, value } = event.target; // Get the name and value of the changed field
 
-    //Update the task object
-    setTask((prevTask) => {
-      return {
-        ...prevTask, //Keep other properties unchanged
-        [name]: value, //Update the specific property
-      };
-    });
+    // Update the task object
+    setTask((prevTask) => ({
+      ...prevTask, // Keep other properties unchanged
+      [name]: value, // Update the specific property
+    }));
+
+    // Clear validation error for the field
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
+    }));
   }
 
-  //Handle task submission
+  // Handle task submission
   function submitTask(event) {
-    props.onAdd(task); //Pass the task (with priority) to the parent
-    setTask({ //Reset priorities after submission
+    const errors = {};
+
+    if (!task.title.trim()) {
+      errors.title = "Title is required.";
+    }
+    if (!task.content.trim()) {
+      errors.content = "Content is required.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return; // Stop execution if there are validation errors
+    }
+
+    props.onAdd(task); // Pass the task (with priority) to the parent
+    
+    setTask({ // Reset priorities after submission
       title: "",
       content: "",
       priority: "",
     });
-    setExpanded(false); //collapse after submitting
+    setValidationErrors({});
+    setExpanded(false); // Collapse after submitting
     event.preventDefault();
   }
 
-  //Expand the form on textarea click
+  // Expand the form on textarea click
   function expand() {
     setExpanded(true);
   }
 
-//add a click listener to detect clicks outside of the form
-useEffect(() => {
-  function handleClickOutside(event) {
-    if (formRef.current && !formRef.current.contains(event.target)) {
-      setExpanded(false); // collapse if click outside
+  // Add a click listener to detect clicks outside of the form
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (formRef.current && !formRef.current.contains(event.target)) {
+        setExpanded(false); // Collapse if clicked outside
+      }
     }
-  }
-  document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div>
       <form className="create-task" ref={formRef}>
         {isExpanded && (
-          <input
-            name="title"
-            onChange={handleChange}
-            value={task.title}
-            placeholder="Title"
-            maxLength="20"
-          />
+          <>
+            <input
+              name="title"
+              onChange={handleChange}
+              value={task.title}
+              placeholder="Title"
+              maxLength="20"
+              className={validationErrors.title ? "input-error" : ""}
+            />
+            {validationErrors.title && (
+              <p className="error-message">{validationErrors.title}</p>
+            )}
+          </>
         )}
 
         {isExpanded && (
@@ -78,7 +106,7 @@ useEffect(() => {
             value={task.priority}
             onChange={handleChange}
           >
-            <option value="">Select Priority</option>
+            <option value="">Priority</option>
             <option value="High">High</option>
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
@@ -93,7 +121,11 @@ useEffect(() => {
           placeholder="Write your task description."
           rows={isExpanded ? 3 : 1}
           maxLength="200"
-        />  
+          className={validationErrors.content ? "input-error" : ""}
+        />
+        {validationErrors.content && (
+          <p className="error-message">{validationErrors.content}</p>
+        )}
 
         <Zoom in={isExpanded}>
           <Fab onClick={submitTask}>
