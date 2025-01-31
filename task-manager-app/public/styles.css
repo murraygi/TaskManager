@@ -3,19 +3,24 @@
   margin: 0;
   box-sizing: border-box;
 }
+
 html {
   font-family: "Open Sans", sans-serif;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
 @media screen and (max-width: 768px) {
-  html, body {
-    height: 100vh; /* Limit height to viewport height */
+
+  html,
+  body {
+    height: 100vh;
+    /* Limit height to viewport height */
   }
 }
 
@@ -34,9 +39,9 @@ header {
   margin: 0;
   padding: 16px 32px;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
-  width: 100vw; 
-  position: absolute; 
-  top: 0; 
+  width: 100vw;
+  position: absolute;
+  top: 0;
   left: 0;
   box-sizing: border-box;
   z-index: 10;
@@ -74,14 +79,16 @@ footer p {
 
 .task {
   display: flex;
-  flex-direction: column; /* Stack content vertically */
+  flex-direction: column;
+  /* Stack content vertically */
   flex-wrap: nowrap;
   background: #fff;
   border-radius: 7px;
   box-shadow: 0 2px 5px #ccc;
   padding: 15px;
   margin: 8px 0;
-  width: 100%; /* Ensure it fits the container */
+  width: 100%;
+  /* Ensure it fits the container */
   box-sizing: border-box;
 }
 
@@ -92,37 +99,52 @@ footer p {
 }
 
 .task .taskContent {
-  flex: 2 1 auto; /* Take up available space and allow wrapping */
-  word-wrap: break-word; /* Ensure content wraps within the container */
+  flex: 2 1 auto;
+  /* Take up available space and allow wrapping */
+  word-wrap: break-word;
+  /* Ensure content wraps within the container */
   overflow-wrap: break-word;
-  margin-top: 8px; /* Add spacing between content and other elements */
+  margin-top: 8px;
+  /* Add spacing between content and other elements */
 }
 
 .task-footer {
   display: flex;
-  justify-content: space-between; /* Space priority on the left and buttons on the right */
-  align-items: center; /* Vertically align priority and buttons */
-  margin-top: auto; /* Push footer to the bottom of the task */
-  padding-top: 10px; /* Add spacing above footer */
-  gap: 10px; /* Add spacing between the buttons and priority (optional) */
+  justify-content: space-between;
+  /* Space priority on the left and buttons on the right */
+  align-items: center;
+  /* Vertically align priority and buttons */
+  margin-top: auto;
+  /* Push footer to the bottom of the task */
+  padding-top: 10px;
+  /* Add spacing above footer */
+  gap: 10px;
+  /* Add spacing between the buttons and priority (optional) */
 }
 
 .taskPriority {
-  text-align: left; /* Align priority text to the left */
-  margin: 0; /* Remove default margin */
-  flex: 1; /* Allow priority to take up available space */
+  text-align: left;
+  /* Align priority text to the left */
+  margin: 0;
+  /* Remove default margin */
+  flex: 1;
+  /* Allow priority to take up available space */
 }
 
 .task-footer button {
-  background: none; /* Remove default button styles */
+  background: none;
+  /* Remove default button styles */
   border: none;
   cursor: pointer;
-  color: #1e3799; /* Example color */
-  margin-left: 10px; /* Add spacing between buttons */
+  color: #1e3799;
+  /* Example color */
+  margin-left: 10px;
+  /* Add spacing between buttons */
 }
 
 .task-footer button:hover {
-  color: #4caf50; /* Hover effect for buttons */
+  color: #4caf50;
+  /* Hover effect for buttons */
 }
 
 .task button {
@@ -147,7 +169,7 @@ footer p {
 form.create-task {
   position: relative;
   width: 100%;
-  margin-top: 5%;
+  margin-top: 6rem;
   background: #f9f9f9;
   padding: 20px;
   border-radius: 10px;
@@ -178,7 +200,7 @@ form.create-task select {
 
 form.create-task button {
   position: absolute;
-  right: 1%;
+  right: 4%;
   background: #4caf50;
   color: white;
   border: none;
@@ -267,9 +289,12 @@ form.create-task button:hover {
 
 .task-header {
   display: flex;
-  align-items: center; /* Align checkbox and title vertically */
-  gap: 10px; /* Add space between checkbox and title */
-  flex: 1 1 auto; /* Allow this section to grow/shrink */
+  align-items: center;
+  /* Align checkbox and title vertically */
+  gap: 10px;
+  /* Add space between checkbox and title */
+  flex: 1 1 auto;
+  /* Allow this section to grow/shrink */
 }
 
 .task-header h2 {
