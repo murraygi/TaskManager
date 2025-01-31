@@ -200,7 +200,7 @@ form.create-task select {
 
 form.create-task button {
   position: absolute;
-  right: 4%;
+  right: 1%;
   background: #4caf50;
   color: white;
   border: none;
@@ -216,6 +216,7 @@ form.create-task button {
 @media screen and (max-width: 768px) {
   form.create-task button {
     bottom: 10% !important;
+    right: 1rem;
   }
 }
 
