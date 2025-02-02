@@ -15,12 +15,7 @@ router.get('/', async (req, res) => {
 // POST a new task
 router.post('/', async (req, res) => {
   try {
-    console.log("Received data:", req.body); // ✅ Log request body
-
     const newTask = await Task.create(req.body);
-
-    console.log("Saved to database:", newTask); // ✅ Log saved task
-
     res.status(201).json(newTask);
   } catch (error) {
     console.error("Error saving to database:", error); // ✅ Log any errors

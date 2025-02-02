@@ -35,9 +35,10 @@ function TaskCreation(props) {
   }
 
   // Handle task submission
-  function submitTask(event) {
-    const errors = {};
+  async function submitTask(event) {
+    event.preventDefault();
 
+    const errors = {};
     if (!task.title.trim()) {
       errors.title = "Title is required.";
     }
@@ -50,17 +51,38 @@ function TaskCreation(props) {
       return; // Stop execution if there are validation errors
     }
 
-    props.onAdd(task); // Pass the task (with priority) to the parent
-    
-    setTask({ // Reset priorities after submission
+    const newTask = {
+      title: task.title,
+      content: task.content,
+      priority: task.priority || "Low"
+    };
+      
+    try {
+      const response = await fetch("http://localhost:5050/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTask)
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add task");
+      }
+  
+      const result = await response.json(); // Get saved task from DB
+      props.onAdd(result); // Update UI with correct data from backend
+
+    setTask({ // Reset form after submission
       title: "",
       content: "",
       priority: "",
     });
+
     setValidationErrors({});
     setExpanded(false); // Collapse after submitting
-    event.preventDefault();
+  } catch (error) {
+    console.error("Error:", error);
   }
+}
 
   // Expand the form on textarea click
   function expand() {
