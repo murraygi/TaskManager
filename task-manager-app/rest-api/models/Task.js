@@ -16,6 +16,8 @@ const Task = sequelize.define('Task', {
   },
   createdAt: DataTypes.DATE,
   updatedAt: DataTypes.DATE,
+}, {
+  tableName: 'tasks', //Force lowercase table
 });
 
 module.exports = Task;

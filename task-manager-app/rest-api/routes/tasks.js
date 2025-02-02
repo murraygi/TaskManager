@@ -15,10 +15,16 @@ router.get('/', async (req, res) => {
 // POST a new task
 router.post('/', async (req, res) => {
   try {
+    console.log("Received data:", req.body); // ✅ Log request body
+
     const newTask = await Task.create(req.body);
+
+    console.log("Saved to database:", newTask); // ✅ Log saved task
+
     res.status(201).json(newTask);
   } catch (error) {
-    res.status(400).json({ error: 'Failed to create task' });
+    console.error("Error saving to database:", error); // ✅ Log any errors
+    res.status(500).json({ error: "Failed to create task" });
   }
 });
 
