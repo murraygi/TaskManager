@@ -19,19 +19,24 @@ body {
 
   html,
   body {
-    height: 100vh;
-    /* Limit height to viewport height */
+    min-height: 100vh;
   }
 }
 
 #root {
-  height: 100vh;
+  min-height: 100vh;
 }
 
 body {
   background: #eee;
   background-image: url("https://www.transparenttextures.com/patterns/axiom-pattern.png");
   padding: 0 16px;
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+.testMain {
+  padding-bottom: 5rem;
 }
 
 header {
@@ -41,6 +46,7 @@ header {
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
   width: 100vw;
   position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   box-sizing: border-box;
@@ -65,7 +71,7 @@ header .header-content {
 }
 
 footer {
-  position: fixed;
+  position: sticky;
   text-align: center;
   bottom: 0;
   width: 100%;
@@ -162,14 +168,14 @@ footer p {
 
 @media screen and (max-width: 768px) {
   form.create-task {
-    margin-top: 25% !important;
+    margin-top: 1rem !important;
   }
 }
 
 form.create-task {
   position: relative;
   width: 100%;
-  margin-top: 6rem;
+  margin-top: 1rem;
   background: #f9f9f9;
   padding: 20px;
   border-radius: 10px;
@@ -300,4 +306,23 @@ form.create-task button:hover {
 
 .task-header h2 {
   margin: 0;
+}
+
+.task-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.task-actions .saveBtn:hover {
+  background-color: #45a049;
+}
+
+.task-actions .cancelBtn {
+  background-color: red;
+  color: white;
+}
+
+.task-actions .cancelBtn:hover {
+  background-color: #cc0000;
 }

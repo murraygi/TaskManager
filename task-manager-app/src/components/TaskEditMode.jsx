@@ -1,11 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 function TaskEditMode(props) {
   const [task, setTask] = useState({
-    title: props.title,
-    content: props.content,
-    priority: props.priority,
+    title: props.task?.title || "",
+    content: props.task?.content || "",
+    priority: props.task?.priority || "",
   });
+
+  // Update the state when props change
+  useEffect(() => {
+    if (props.task) {
+      setTask({
+        title: props.task.title || "",
+        content: props.task.content || "",
+        priority: props.task.priority || "",
+      });
+    }
+  }, [props.task]); // Re-run when any of the props change
 
   // Handle changes to inputs
   function handleChange(event) {
@@ -20,6 +31,11 @@ function TaskEditMode(props) {
   function saveTask(event) {
     event.preventDefault();
     props.onSave(props.id, task); // Pass the updated task back to the parent
+  }
+
+  // Handle canceling the edit
+  function cancelEdit() {
+    props.onCancel(); // Reset editing mode in the parent component
   }
 
   return (
@@ -46,7 +62,10 @@ function TaskEditMode(props) {
           rows="3"
           maxLength="200"
         />
-        <button onClick={saveTask}>Save</button>
+        <div className="task-actions">
+          <button className="saveBtn" onClick={saveTask}>Save</button>
+          <button className="cancelBtn" onClick={cancelEdit}>Cancel</button>
+        </div>        
       </form>
     </div>
   );
