@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Task = require('../models/Task');
+const TaskController = require("../controllers/TaskController");
 
 // GET all tasks
 router.get('/', async (req, res) => {
   try {
-    const tasks = await Task.findAll();
+    const tasks = await TaskController.getAllTasks();
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch tasks' });
@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
     const { title, content } = req.body;
     
     // Check if the task already exists
-    const existingTask = await Task.findOne({
+    const existingTask = await TaskController.findOne({
       where: {
         title,
         content
@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Task already exists' });
     }
 
-    const newTask = await Task.create(req.body);
+    const newTask = await TaskController.createTask(req.body);
     res.status(201).json(newTask);
   } catch (error) {
     console.error("Error saving to database:", error);
@@ -40,9 +40,9 @@ router.post('/', async (req, res) => {
 // PUT (update) a task by ID
 router.put('/:id', async (req, res) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await TaskController.getTaskById(req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
-    const updatedTask = await task.update(req.body);
+    const updatedTask = await TaskController.updateTask(req.params.id, req.body);
     res.json(updatedTask);
   } catch (error) {
     res.status(400).json({ error: 'Failed to update task' });
@@ -52,9 +52,9 @@ router.put('/:id', async (req, res) => {
 // DELETE a task by ID
 router.delete('/:id', async (req, res) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await TaskController.getTaskById(req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
-    await task.destroy();
+    await TaskController.deleteTask(req.params.id);
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete task' });

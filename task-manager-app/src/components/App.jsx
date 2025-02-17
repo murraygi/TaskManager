@@ -39,14 +39,29 @@ function App() {
     }
   }  
 
-  // Toggle task completion
-  function toggleComplete(id) {
+  async function toggleComplete(id) {
+    //Find current value for task
+    const targetTask = tasks.find((t) => t.id === id);
+    const newCompletedValue = !targetTask?.completed;
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+        task.id === id ? { ...task, completed: newCompletedValue } : task
       )
     );
-  }
+    try {
+      const response = await fetch(`http://localhost:5050/api/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: newCompletedValue }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to toggle complete on task ${id}`);
+      }
+    } catch (error) {
+      console.error("Error toggling completion:", error);
+    }
+  }  
 
   // Delete task from frontend and backend
   async function deleteTask(id) {

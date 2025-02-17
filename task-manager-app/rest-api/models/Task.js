@@ -20,6 +20,10 @@ const Task = sequelize.define('Task', {
     type: DataTypes.STRING,
     defaultValue: 'Low',
   },
+  completed: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
   createdAt: DataTypes.DATE,
   updatedAt: DataTypes.DATE,
 }, {
