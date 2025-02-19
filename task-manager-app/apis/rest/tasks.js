@@ -15,20 +15,6 @@ router.get('/', async (req, res) => {
 // POST a new task
 router.post('/', async (req, res) => {
   try {
-    const { title, content } = req.body;
-    
-    // Check if the task already exists
-    const existingTask = await TaskController.findOne({
-      where: {
-        title,
-        content
-      }
-    });
-
-    if (existingTask) {
-      return res.status(400).json({ error: 'Task already exists' });
-    }
-
     const newTask = await TaskController.createTask(req.body);
     res.status(201).json(newTask);
   } catch (error) {

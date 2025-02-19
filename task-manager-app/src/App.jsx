@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Header from "./Header";
-import Footer from "./Footer";
-import TaskCreation from "./TaskCreation";
-import TaskList from "./TaskList";
-import TaskEditMode from "./TaskEditMode";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import TaskCreation from "./components/TaskCreation";
+import TaskList from "./components/TaskList";
+import TaskEditMode from "./components/TaskEditMode";
 
 function App() {
   const [tasks, setTasks] = useState([]);
