@@ -1,4 +1,3 @@
-// graphql/schema.js
 const { createSchema } = require('graphql-yoga');
 const TaskController = require('../controllers/TaskController');
 
@@ -13,14 +12,12 @@ module.exports = createSchema({
       createdAt: String
       updatedAt: String
     }
-
     type Query {
       # Return all tasks
       tasks: [Task]
       # Return a single task by ID
       task(id: Int!): Task
     }
-
     type Mutation {
       # Create a new task (completed is optional; default is false in your Sequelize model)
       createTask(
@@ -29,7 +26,6 @@ module.exports = createSchema({
         priority: String
         completed: Boolean
       ): Task
-
       # Update an existing task
       updateTask(
         id: Int!
@@ -38,7 +34,6 @@ module.exports = createSchema({
         priority: String
         completed: Boolean
       ): Task
-
       # Delete a task
       deleteTask(id: Int!): String
     }

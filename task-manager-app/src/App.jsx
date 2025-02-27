@@ -4,122 +4,41 @@ import Footer from "./components/Footer";
 import TaskCreation from "./components/TaskCreation";
 import TaskList from "./components/TaskList";
 import TaskEditMode from "./components/TaskEditMode";
+import { useTasksREST } from "./hooks/useTasksREST";
+import { useTasksGraphQL } from "./hooks/useTasksGraphQL";
 
 function App() {
-  const [tasks, setTasks] = useState([]);
+  // Toggle state: if true, use GraphQL; else use REST
+  const [useGraphQL, setUseGraphQL] = useState(false);
+
+  // Destructure from the relevant hook
+  const {
+    tasks,
+    addTask,
+    toggleComplete,
+    deleteTask,
+    saveTask
+  } = useGraphQL ? useTasksGraphQL() : useTasksREST();
+
+  // For editing tasks
   const [editingTaskId, setEditingTaskId] = useState(null);
 
-  useEffect(() => {
-    async function fetchTasks() {
-      const response = await fetch("http://localhost:5050/api/tasks");
-      const data = await response.json();
-      setTasks(data);
-    }
-    fetchTasks();
-  }, []);
-  
-  async function addTask(newTask) {
-    // Post the new task to backend
-    try {
-      const response = await fetch("http://localhost:5050/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTask)
-      });
-
-      if (!response.ok) {
-        console.error("Failed to create task", response.status);
-        return;
-      }
-      const createdTask = await response.json();
-      // Update local state with the created task from backend
-      setTasks(prevTasks => [...prevTasks, createdTask]);
-    } catch (error) {
-      console.error("Error adding task:", error);
-    }
-  }  
-
-  async function toggleComplete(id) {
-    //Find current value for task
-    const targetTask = tasks.find((t) => t.id === id);
-    const newCompletedValue = !targetTask?.completed;
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, completed: newCompletedValue } : task
-      )
-    );
-    try {
-      const response = await fetch(`http://localhost:5050/api/tasks/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed: newCompletedValue }),
-      });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to toggle complete on task ${id}`);
-      }
-    } catch (error) {
-      console.error("Error toggling completion:", error);
-    }
-  }  
-
-  // Delete task from frontend and backend
-  async function deleteTask(id) {
-    console.log("Attempting to delete task with ID:", id);  // Debugging line
-    try {
-      const response = await fetch(`http://localhost:5050/api/tasks/${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-        if (editingTaskId === id) {
-          setEditingTaskId(null);
-        }
-      } else {
-        console.error("Failed to delete task");
-      }
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    }
-  }
-
-  // Edit task
   function editTask(id) {
     setEditingTaskId(id);
   }
-
-  // Save edited task
-  async function saveTask(id, updatedTask) {
-    console.log("Saving task with ID:", id);  // Debugging line
-    try {
-      const response = await fetch(`http://localhost:5050/api/tasks/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedTask),
-      });
-  
-      if (response.ok) {
-        const updatedData = await response.json();
-        setTasks((prevTasks) =>
-          prevTasks.map((task) =>
-            task.id === updatedData.id ? { ...updatedData } : task
-          )
-        );
-        setEditingTaskId(null);
-      } else {
-        console.error("Failed to save task");
-      }
-    } catch (error) {
-      console.error("Error saving task:", error);
-    }
+  function cancelEdit() {
+    setEditingTaskId(null);
   }
+
+  // Find the task that is currently being edited
+  const editingTask = tasks.find((task) => task.id === editingTaskId);
   
   return (
     <div className="testMain">
       <Header />
+      <button onClick={() => setUseGraphQL(!useGraphQL)}>
+        Switch to {useGraphQL ? "REST" : "GraphQL"}
+      </button>
       <TaskCreation onAdd={addTask} />
       {editingTaskId ? (
         <TaskEditMode
