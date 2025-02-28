@@ -90,8 +90,13 @@ function TaskCreation(props) {
           value={task.content}
           placeholder="Write your task description."
           rows={isExpanded ? 3 : 1}
-          maxLength="200"
+          maxLength="20000"
           className={validationErrors.content ? "input-error" : ""}
+          style={{
+            maxHeight: "200px",
+            overflowY: "auto",
+            resize: "vertical"
+          }}
         />
         {validationErrors.content && (
           <p className="error-message">{validationErrors.content}</p>
