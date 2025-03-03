@@ -3,33 +3,66 @@ import { useState, useEffect } from "react";
 
 export function useTasksGraphQL() {
   const [tasks, setTasks] = useState([]);
+  const [page, setPage] = useState(1);
+  const limit = 10;  // Adjust as needed
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch first page on mount
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(page);
   }, []);
 
-  // 1) FETCH ALL TASKS (GraphQL query)
-  function fetchTasks() {
-    fetch("http://localhost:5050/graphql", {
+  // Fetch tasks by page
+  async function fetchTasks(pageNum) {
+    if (loading || !hasMore) return; 
+    setLoading(true);
+
+    try {
+      //POST graphql with page and limit
+    const response = await fetch("http://localhost:5050/graphql", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         query: `
-          query {
-            tasks {
-              id
-              title
-              content
-              priority
-              completed
+            query ($page: Int, $limit: Int) {
+              tasks(page: $page, limit: $limit) {
+                rows {
+                  id
+                  title
+                  content
+                  priority
+                  completed
+                }
+                total
+              }
             }
-          }
-        `,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => setTasks(data.data.tasks))
-      .catch((err) => console.error("Error fetching tasks (GraphQL):", err));
+          `,
+          variables: { page: pageNum, limit },
+        }),
+      });
+      if (!response.ok) throw new Error("GraphQL request failed");
+      const result = await response.json();
+      // tasks(page, limit) => returns { rows, total }
+      const { rows, total } = result.data.tasks;
+      // append new tasks to existing list
+      setTasks((prev) => [...prev, ...rows]);
+      if (rows.length < limit) {
+        setHasMore(false);
+      }
+      // increment page for next call
+      setPage(pageNum + 1);
+
+    } catch (error) {
+      console.error("Error fetching tasks (GraphQL):", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Load more when user scrolls down
+  function loadMore() {
+    fetchTasks(page);
   }
 
   // 2) ADD TASK (GraphQL mutation)
@@ -142,13 +175,11 @@ export function useTasksGraphQL() {
       if (!response.ok) throw new Error("Failed to toggle completion");
       const result = await response.json();
       const updatedData = result.data.updateTask;
-      setTasks((prev) =>
-        prev.map((t) => (t.id === updatedData.id ? updatedData : t))
-      );
+      setTasks((prev) => prev.map((t) => (t.id === updatedData.id ? updatedData : t)));
     } catch (error) {
       console.error(error);
     }
   }
 
-  return { tasks, fetchTasks, addTask, saveTask, deleteTask, toggleComplete };
+  return { tasks, loadMore, hasMore, loading, addTask, saveTask, deleteTask, toggleComplete };
 }

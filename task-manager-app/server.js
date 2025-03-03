@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./apis/config/database');
-const taskRoutes = require('./apis/rest/tasks');
+const taskRoutes = require('./apis/rest/routes/tasks');
 const { createYoga } = require('graphql-yoga');
 const schema = require('./apis/graphql');
 require('dotenv').config();

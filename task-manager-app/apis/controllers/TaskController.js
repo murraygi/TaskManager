@@ -1,10 +1,21 @@
-const Task = require("../models/Task");
+const Task = require("../rest/models/Task");
 
 class TaskController {
-  static async getAllTasks() {
-    return await Task.findAll();
-  }
+  static async getTasksPaginated(page, limit) {
+    const offset = (page - 1) * limit;
+    try {
+      const { rows, count } = await Task.findAndCountAll({
+        limit,
+        offset,
+        order: [["createdAt", "DESC"]],
+      });
 
+      return { rows, total: count };
+    } catch (error) {
+      console.error("Error fetching paginated tasks:", error);
+      throw error;
+    }
+  }
   static async findOne(options) {
     return await Task.findOne(options);
   }

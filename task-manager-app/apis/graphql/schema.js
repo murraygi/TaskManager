@@ -12,12 +12,21 @@ module.exports = createSchema({
       createdAt: String
       updatedAt: String
     }
+
+    # Pagination Response Type
+    type TaskConnection {
+      rows: [Task]  # Paginated list of tasks
+      total: Int    # Total count of tasks
+    }
+
     type Query {
-      # Return all tasks
-      tasks: [Task]
-      # Return a single task by ID
+      # Fetch paginated tasks (instead of all tasks at once)
+      tasks(page: Int, limit: Int): TaskConnection
+
+      # Fetch a single task by ID
       task(id: Int!): Task
     }
+
     type Mutation {
       # Create a new task (completed is optional; default is false in your Sequelize model)
       createTask(
@@ -26,6 +35,7 @@ module.exports = createSchema({
         priority: String
         completed: Boolean
       ): Task
+      
       # Update an existing task
       updateTask(
         id: Int!
@@ -34,19 +44,11 @@ module.exports = createSchema({
         priority: String
         completed: Boolean
       ): Task
+      
       # Delete a task
       deleteTask(id: Int!): String
     }
   `,
-  resolvers: {
-    Query: {
-      tasks: async () => {
-        return TaskController.getAllTasks();
-      },
-      task: async (_, { id }) => {
-        return TaskController.getTaskById(id);
-      },
-    },
     Mutation: {
       createTask: async (_, { title, content, priority, completed }) => {
         // Pass the completed field if provided; your model may default it to false if omitted
@@ -62,4 +64,4 @@ module.exports = createSchema({
       },
     },
   },
-});
+);

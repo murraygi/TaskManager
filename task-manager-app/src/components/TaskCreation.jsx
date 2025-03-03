@@ -85,6 +85,7 @@ function TaskCreation(props) {
 
         <textarea
           name="content"
+          id="task-content"
           onClick={expand}
           onChange={handleChange}
           value={task.content}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import TaskCreation from "./components/TaskCreation";
@@ -17,8 +17,12 @@ function App() {
     addTask,
     toggleComplete,
     deleteTask,
-    saveTask
+    saveTask,
+    loadMore,
+    hasMore,
+    loading
   } = useGraphQL ? useTasksGraphQL() : useTasksREST();
+  
 
   // For editing tasks
   const [editingTaskId, setEditingTaskId] = useState(null);
@@ -49,10 +53,13 @@ function App() {
         />
       ) : (
         <TaskList
-          tasks={tasks}
-          onToggleComplete={toggleComplete}
-          onDelete={deleteTask}
-          onEdit={editTask}
+        tasks={tasks}
+        onToggleComplete={toggleComplete}
+        onDelete={deleteTask}
+        onEdit={editTask}
+        loadMore={loadMore}
+        hasMore={hasMore}
+        loading={loading}
         />
       )}
       <Footer />

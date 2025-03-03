@@ -1,14 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const TaskController = require("../controllers/TaskController");
+const TaskController = require("../../controllers/TaskController");
 
 // GET all tasks
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const tasks = await TaskController.getAllTasks();
-    res.json(tasks);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { rows, total } = await TaskController.getTasksPaginated(page, limit);
+    res.json({
+      tasks: rows,
+      total
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch tasks' });
+    console.error("Error fetching paginated tasks:", error);
+    res.status(500).json({ error: "Failed to fetch tasks" });
   }
 });
 

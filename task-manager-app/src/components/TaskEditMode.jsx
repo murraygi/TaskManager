@@ -43,6 +43,7 @@ function TaskEditMode(props) {
       <form>
         <input
           name="title"
+          id="edit-task-title"
           onChange={handleChange}
           value={task.title}
           placeholder="Title"
@@ -56,6 +57,7 @@ function TaskEditMode(props) {
         </select>
         <textarea
           name="content"
+          id="edit-task-content"
           onChange={handleChange}
           value={task.content}
           placeholder="Task Description"
