@@ -4,6 +4,14 @@
   box-sizing: border-box;
 }
 
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans.woff2') format('woff2');
+  font-weight: 300 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 html {
   font-family: "Open Sans", sans-serif;
 }
@@ -59,6 +67,7 @@ header h1 {
 }
 
 header .header-content .logo-icon {
+  color: #fff;
   display: inline-flex;
   font-size: 24px;
   align-self: center;

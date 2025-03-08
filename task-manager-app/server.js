@@ -1,4 +1,6 @@
 const express = require('express');
+const compression = require('compression');
+const path = require('path');
 const cors = require('cors');
 const sequelize = require('./apis/config/database');
 const taskRoutes = require('./apis/rest/routes/tasks');
@@ -9,6 +11,12 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Apply compression middleware before serving static files
+app.use(compression()); 
+
+// Serve static files from the build folder
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // Function to sync database
 async function syncDatabase() {

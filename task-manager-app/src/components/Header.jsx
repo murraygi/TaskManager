@@ -4,12 +4,10 @@ import Assignment from "@mui/icons-material/Assignment";
 function Header() {
   return (
     <header>
-      <h1>
         <div className="header-content">
-        <Assignment className="logo-icon" />
-        Task Manager
+        <Assignment className="logo-icon" fontSize="large" />
+        <h1>Task Manager</h1>
         </div>
-      </h1>
     </header>
   );
 }
