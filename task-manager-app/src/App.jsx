@@ -8,8 +8,27 @@ import { useTasksREST } from "./hooks/useTasksREST";
 import { useTasksGraphQL } from "./hooks/useTasksGraphQL";
 
 function App() {
-  // Toggle state: if true, use GraphQL; else use REST
-  const [useGraphQL, setUseGraphQL] = useState(false);
+  // Read the api query param at initialisation
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialMode = searchParams.get("api") === "graphql";
+
+  //useState default depending on query param
+  const [useGraphQL, setUseGraphQL] = useState(initialMode);
+
+  // On toggle, update both local state + the query param
+  function toggleMode() {
+    // If using REST, switch to GraphQL, else REST
+    const newMode = !useGraphQL ? "graphql" : "rest";
+
+    // Update the URL param
+    const params = new URLSearchParams(window.location.search);
+    params.set("api", newMode);
+    // Replace current URL with new query param 
+    window.history.replaceState({}, "", `?${params.toString()}`);
+
+    // Update local state
+    setUseGraphQL(!useGraphQL);
+  }
 
   // Destructure from the relevant hook
   const {
@@ -40,7 +59,7 @@ function App() {
   return (
     <div className="testMain">
       <Header />
-      <button onClick={() => setUseGraphQL(!useGraphQL)}>
+      <button onClick={toggleMode}>
         Switch to {useGraphQL ? "REST" : "GraphQL"}
       </button>
       <TaskCreation onAdd={addTask} />
