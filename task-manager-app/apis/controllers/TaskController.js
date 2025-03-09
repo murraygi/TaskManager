@@ -7,7 +7,7 @@ class TaskController {
       const { rows, count } = await Task.findAndCountAll({
         limit,
         offset,
-        order: [["createdAt", "DESC"]],
+        order: [["createdAt", "ASC"]],
       });
 
       return { rows, total: count };

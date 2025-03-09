@@ -49,19 +49,5 @@ module.exports = createSchema({
       deleteTask(id: Int!): String
     }
   `,
-    Mutation: {
-      createTask: async (_, { title, content, priority, completed }) => {
-        // Pass the completed field if provided; your model may default it to false if omitted
-        return TaskController.createTask({ title, content, priority, completed });
-      },
-      updateTask: async (_, { id, ...updates }) => {
-        // updates could include completed, title, content, or priority
-        return TaskController.updateTask(id, updates);
-      },
-      deleteTask: async (_, { id }) => {
-        await TaskController.deleteTask(id);
-        return `Task ${id} deleted`;
-      },
-    },
   },
 );

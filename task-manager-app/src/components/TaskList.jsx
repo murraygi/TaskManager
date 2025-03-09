@@ -23,7 +23,14 @@ function TaskList({ tasks, onToggleComplete, onDelete, onEdit, loadMore, hasMore
     <div>
       {tasks
         .slice() // Copy array to prevent mutations
-        .sort((a, b) => a.completed - b.completed) // Sort: incomplete tasks first
+        .sort((a, b) => {
+          //incomplete always before completed
+          if (!a.completed && b.completed) return -1;
+          if (a.completed && !b.completed) return 1;
+
+          //if both have the same completed status, sort by createdAt ascending
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        })
         .map((taskItem) => (
           <Task
             key={taskItem.id}
