@@ -4,5 +4,8 @@ import App from "./App";
 
 ReactDOM.render(<App />, document.getElementById("root"));
 
-// npm run dev
-// to launch your react project in your browser
+// node server.js
+
+// npm run dev or npm run build
+
+// serve -s dist

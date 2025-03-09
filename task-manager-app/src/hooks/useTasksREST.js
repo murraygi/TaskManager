@@ -1,49 +1,47 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export function useTasksREST() {
   const [tasks, setTasks] = useState([]);
+  const [totalTasks, setTotalTasks] = useState([0]);
   const [page, setPage] = useState(1);
-  const limit = 10; // Number of tasks per page
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const limit = 10; // Number of tasks per page
 
   // Fetch first page on mount
   useEffect(() => {
     fetchTasks(1); // Start on page 1
-  }, []);
+  }, [page]);
 
   // Fetch tasks by page
-  async function fetchTasks(pageNum) {
+  const fetchTasks = useCallback(async (pageNum) => {
     if (loading || !hasMore) return; // Prevent duplicate calls
     setLoading(true);
 
     try {
       const response = await fetch(`http://localhost:5050/api/tasks?page=${pageNum}&limit=${limit}`);
       if (!response.ok) throw new Error("Failed to fetch tasks");
-      const data = await response.json(); // e.g. { tasks: [...], total: 100 }
 
-      setTasks((prev) => [...prev, ...data.tasks]); // Append new tasks to existing list
+      const result = await response.json();
+      const { rows, total } = await response.json(); // Expecting paginated structure
 
-      // If fewer tasks returned than limit, no more data left
-      if (data.tasks.length < limit) {
-        setHasMore(false);
-      }
+      setTasks((prev) => [...prev, ...rows]);
+      setTotalTasks(total); // Store total task count
+      setHasMore(tasks.length + rows.length < total); // Stop if all tasks are loaded
 
-      setPage(pageNum + 1); // Increment page so next loadMore call fetches the next page
     } catch (error) {
       console.error("Error fetching tasks (REST):", error);
     } finally {
       setLoading(false);
     }
-  }
+  }, [loading, hasMore]);
 
-  // loadMore is triggered when the user scrolls to the bottom
-  function loadMore() {
-    fetchTasks(page);
-  }
+  const loadMore = () => {
+    if (hasMore) setPage((prev) => prev + 1);
+  };
 
-  // 2) ADD TASK
-  async function addTask(newTask) {
+  // ADD TASK
+  const addTask = async (newTask) => {
     try {
       const response = await fetch("http://localhost:5050/api/tasks", {
         method: "POST",
@@ -58,8 +56,8 @@ export function useTasksREST() {
     }
   }
 
-  // 3) SAVE/UPDATE TASK
-  async function saveTask(id, updatedTask) {
+  // SAVE/UPDATE TASK
+  const saveTask = async (id, updatedTask) => {
     try {
       const response = await fetch(`http://localhost:5050/api/tasks/${id}`, {
         method: "PUT",
@@ -76,8 +74,8 @@ export function useTasksREST() {
     }
   }
 
-  // 4) DELETE TASK
-  async function deleteTask(id) {
+  // DELETE TASK
+  const deleteTask = async (id) => {
     try {
       const response = await fetch(`http://localhost:5050/api/tasks/${id}`, {
         method: "DELETE",
@@ -89,8 +87,8 @@ export function useTasksREST() {
     }
   }
 
-  // 5) TOGGLE COMPLETE
-  async function toggleComplete(id) {
+  // TOGGLE COMPLETE
+  const toggleComplete = async (id) => {
     const targetTask = tasks.find((t) => t.id === id);
     if (!targetTask) return;
     const newCompleted = !targetTask.completed;
@@ -103,20 +101,11 @@ export function useTasksREST() {
       });
       if (!response.ok) throw new Error("Failed to toggle completion");
       const updatedData = await response.json();
-      setTasks((prev) => prev.map((t) => (t.id === id ? updatedData : t)));
+      setTasks((prev) => prev.map((t) => (t.id === updatedData.id ? updatedData : t)));
     } catch (error) {
       console.error(error);
     }
   }
 
-  return {
-    tasks,
-    loadMore,
-    hasMore,
-    loading,
-    addTask,
-    toggleComplete,
-    deleteTask,
-    saveTask,
-  };
+  return { tasks, loadMore, hasMore, loading, addTask, saveTask, deleteTask, toggleComplete };
 }

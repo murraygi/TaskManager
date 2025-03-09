@@ -1,5 +1,4 @@
 const { createSchema } = require('graphql-yoga');
-const TaskController = require('../controllers/TaskController');
 
 module.exports = createSchema({
   typeDefs: `
@@ -11,32 +10,51 @@ module.exports = createSchema({
       completed: Boolean
       createdAt: String
       updatedAt: String
+      subtasks: [Subtask]
     }
 
-    # Pagination Response Type
+    type Subtask {
+      id: Int
+      taskId: Int
+      title: String
+      content: String
+      completed: Boolean
+      createdAt: String
+      updatedAt: String
+    }
+
+    # Pagination Response Types
     type TaskConnection {
-      rows: [Task]  # Paginated list of tasks
-      total: Int    # Total count of tasks
+      rows: [Task]
+      total: Int
+    }
+
+    type SubtaskConnection {
+      rows: [Subtask]
+      total: Int
     }
 
     type Query {
-      # Fetch paginated tasks (instead of all tasks at once)
+      # Fetch paginated tasks
       tasks(page: Int, limit: Int): TaskConnection
 
-      # Fetch a single task by ID
+      # Fetch a single task by ID (including subtasks)
       task(id: Int!): Task
+
+      # Fetch paginated subtasks for a specific task
+      subtasks(taskId: Int!, page: Int, limit: Int): SubtaskConnection
     }
 
     type Mutation {
-      # Create a new task (completed is optional; default is false in your Sequelize model)
+      # Create a task
       createTask(
         title: String!
         content: String!
         priority: String
         completed: Boolean
       ): Task
-      
-      # Update an existing task
+
+      # Update a task
       updateTask(
         id: Int!
         title: String
@@ -44,10 +62,28 @@ module.exports = createSchema({
         priority: String
         completed: Boolean
       ): Task
-      
+
       # Delete a task
       deleteTask(id: Int!): String
+
+      # Create a subtask
+      createSubtask(
+        taskId: Int!
+        title: String!
+        content: String!
+        completed: Boolean
+      ): Subtask
+
+      # Update a subtask
+      updateSubtask(
+        id: Int!
+        title: String
+        content: String
+        completed: Boolean
+      ): Subtask
+
+      # Delete a subtask
+      deleteSubtask(id: Int!): String
     }
   `,
-  },
-);
+});
