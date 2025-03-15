@@ -39,7 +39,8 @@ function App() {
     saveTask,
     loadMore,
     hasMore,
-    loading
+    loading,
+    createSubtask
   } = useGraphQL ? useTasksGraphQL() : useTasksREST();
   
 
@@ -79,6 +80,7 @@ function App() {
         loadMore={loadMore}
         hasMore={hasMore}
         loading={loading}
+        onCreateSubtask={createSubtask}
         />
       )}
       <Footer />

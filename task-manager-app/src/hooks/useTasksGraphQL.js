@@ -188,5 +188,43 @@ export function useTasksGraphQL() {
     }
   }
 
-  return { tasks, loadMore, hasMore, loading, addTask, saveTask, deleteTask, toggleComplete };
+  const createSubtask = async (taskId, { title, content, completed }) => {
+    try {
+      const response = await fetch("http://localhost:5050/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `
+            mutation ($taskId: Int!, $title: String!, $content: String!, $completed: Boolean) {
+              createSubtask(taskId: $taskId, title: $title, content: $content, completed: $completed) {
+                id
+                title
+                content
+                completed
+              }
+            }
+          `,
+          variables: { taskId, title, content, completed },
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to create subtask");
+      const result = await response.json();
+      const createdSub = result.data.createSubtask;
+  
+      // Insert this subtask into the correct task
+      setTasks((prev) =>
+        prev.map((t) => {
+          if (t.id === taskId) {
+            const updatedSubs = t.subtasks ? [...t.subtasks, createdSub] : [createdSub];
+            return { ...t, subtasks: updatedSubs };
+          }
+          return t;
+        })
+      );
+    } catch (error) {
+      console.error("Error creating subtask (GraphQL):", error);
+    }
+  };
+
+  return { tasks, loadMore, hasMore, loading, addTask, saveTask, deleteTask, toggleComplete, createSubtask };
 }

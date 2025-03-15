@@ -1,6 +1,7 @@
 import React from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import SubtaskList from "./SubtaskList";
 
 function Task(props) {
   return (
@@ -23,7 +24,12 @@ function Task(props) {
             <DeleteIcon />
           </button>
         </div>
-      </div>
+      <SubtaskList
+        subtasks={props.subtasks || []}
+        taskId={props.id}
+        onCreateSubtask={props.onCreateSubtask}
+       />
+   </div>
   );
 }
 

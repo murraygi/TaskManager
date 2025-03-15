@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Task from "./Task";
 
-function TaskList({ tasks, onToggleComplete, onDelete, onEdit, loadMore, hasMore, loading }) {
+function TaskList({ tasks, onToggleComplete, onDelete, onEdit, loadMore, hasMore, loading, onCreateSubtask }) {
   const observerRef = useRef(); // Ref for detecting scrolling
 
   useEffect(() => {
@@ -42,6 +42,8 @@ function TaskList({ tasks, onToggleComplete, onDelete, onEdit, loadMore, hasMore
             onToggleComplete={onToggleComplete}
             onDelete={onDelete}
             onEdit={() => onEdit(taskItem.id)}
+            subtasks={taskItem.subtasks || []}
+            onCreateSubtask={onCreateSubtask}
           />
         ))}
 

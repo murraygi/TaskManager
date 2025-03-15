@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 
 export function useTasksREST() {
   const [tasks, setTasks] = useState([]);
-  const [totalTasks, setTotalTasks] = useState([0]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -10,7 +9,7 @@ export function useTasksREST() {
 
   // Fetch first page on mount
   useEffect(() => {
-    fetchTasks(1); // Start on page 1
+    fetchTasks(page);
   }, [page]);
 
   // Fetch tasks by page
@@ -23,11 +22,14 @@ export function useTasksREST() {
       if (!response.ok) throw new Error("Failed to fetch tasks");
 
       const result = await response.json();
-      const { rows, total } = await response.json(); // Expecting paginated structure
+      const { tasks, total } = result;
 
-      setTasks((prev) => [...prev, ...rows]);
-      setTotalTasks(total); // Store total task count
-      setHasMore(tasks.length + rows.length < total); // Stop if all tasks are loaded
+      setTasks((prev) => [...prev, ...tasks]);
+
+      setHasMore((prevArray) => {
+        const newLength = prevArray.length + tasks.length;
+        return newLength < total; 
+      });
 
     } catch (error) {
       console.error("Error fetching tasks (REST):", error);
@@ -107,5 +109,31 @@ export function useTasksREST() {
     }
   }
 
-  return { tasks, loadMore, hasMore, loading, addTask, saveTask, deleteTask, toggleComplete };
+  const createSubtask = async (taskId, newSubtask) => {
+    try {
+      const response = await fetch("http://localhost:5050/api/subtasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId, ...newSubtask }),
+      });
+      if (!response.ok) throw new Error("Failed to create subtask");
+      const createdSub = await response.json();
+  
+      // Update local state: find the task, append the subtask
+      setTasks((prev) =>
+        prev.map((t) => {
+          if (t.id === taskId) {
+            // Insert new subtask into t.subtasks (which might be missing or empty)
+            const updatedSubtasks = t.subtasks ? [...t.subtasks, createdSub] : [createdSub];
+            return { ...t, subtasks: updatedSubtasks };
+          }
+          return t;
+        })
+      );
+    } catch (error) {
+      console.error("Error creating subtask:", error);
+    }
+  };
+
+  return { tasks, loadMore, hasMore, loading, addTask, saveTask, deleteTask, toggleComplete, createSubtask };
 }
