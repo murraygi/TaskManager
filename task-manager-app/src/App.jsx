@@ -4,8 +4,7 @@ import Footer from "./components/Footer";
 import TaskCreation from "./components/TaskCreation";
 import TaskList from "./components/TaskList";
 import TaskEditMode from "./components/TaskEditMode";
-import { useTasksREST } from "./hooks/useTasksREST";
-import { useTasksGraphQL } from "./hooks/useTasksGraphQL";
+import { useTasks } from "./hooks/useTasks";
 
 function App() {
   // Read the api query param at initialisation
@@ -41,9 +40,8 @@ function App() {
     hasMore,
     loading,
     createSubtask
-  } = useGraphQL ? useTasksGraphQL() : useTasksREST();
+  } = useTasks(useGraphQL);
   
-
   // For editing tasks
   const [editingTaskId, setEditingTaskId] = useState(null);
 
