@@ -39,7 +39,8 @@ function App() {
     loadMore,
     hasMore,
     loading,
-    createSubtask
+    createSubtask,
+    toggleSubtaskComplete
   } = useTasks(useGraphQL);
   
   // For editing tasks
@@ -79,6 +80,7 @@ function App() {
         hasMore={hasMore}
         loading={loading}
         onCreateSubtask={createSubtask}
+        toggleSubtaskComplete={toggleSubtaskComplete}
         />
       )}
       <Footer />

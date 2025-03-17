@@ -274,6 +274,76 @@ export function useTasks(isGraphQL) {
     }
   };
 
+  const toggleSubtaskComplete = async (taskId, subtaskId, currentCompleted) => {
+    const newCompleted = !currentCompleted;
+ 
+    if (!isGraphQL) {
+      // REST approach
+      try {
+        const response = await fetch(`http://localhost:5050/api/subtasks/${subtaskId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ completed: newCompleted })
+        });
+        if (!response.ok) throw new Error("Failed to toggle subtask (REST)");
+        const updatedSub = await response.json();
+ 
+        // Update local tasks => find the subtask in the correct task
+        setTasks((prev) =>
+          prev.map((t) => {
+            if (t.id === taskId) {
+              const updatedSubs = t.subtasks?.map((st) => 
+                st.id === subtaskId ? updatedSub : st
+              );
+              return { ...t, subtasks: updatedSubs };
+            }
+            return t;
+          })
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      // GraphQL approach
+      try {
+        const response = await fetch("http://localhost:5050/graphql", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: `
+              mutation ($id: Int!, $completed: Boolean) {
+                updateSubtask(id: $id, completed: $completed) {
+                  id
+                  title
+                  content
+                  completed
+                }
+              }
+            `,
+            variables: { id: subtaskId, completed: newCompleted },
+          }),
+        });
+        if (!response.ok) throw new Error("Failed to toggle subtask (GraphQL)");
+        const result = await response.json();
+        const updatedSub = result.data.updateSubtask;
+ 
+        setTasks((prev) =>
+          prev.map((t) => {
+            if (t.id === taskId) {
+              const updatedSubs = t.subtasks?.map((st) =>
+                st.id === subtaskId ? updatedSub : st
+              );
+              return { ...t, subtasks: updatedSubs };
+            }
+            return t;
+          })
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
   return {
     tasks,
     hasMore,
@@ -283,6 +353,7 @@ export function useTasks(isGraphQL) {
     saveTask,
     deleteTask,
     createSubtask,
+    toggleSubtaskComplete,
     toggleComplete: async (id) => {
       // Same pattern as save or update
       if (!isGraphQL) {

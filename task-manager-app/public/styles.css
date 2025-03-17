@@ -164,7 +164,6 @@ footer p {
 
 .task button {
   position: relative;
-  float: right;
   flex-shrink: 0;
   color: #1e3799;
   border: none;
@@ -334,4 +333,32 @@ form.create-task button:hover {
 
 .task-actions .cancelBtn:hover {
   background-color: #cc0000;
+}
+
+/* .subtask-header {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.subtask-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+} */
+
+button.toggleBtn {
+  background-color: #1e3799;
+  color: white;
+  width: fit-content;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+button.addBtn {
+  background-color: #1e3799;
+  color: white;
+  border-radius: 50%;
+  padding-top: 0.2rem;
+  float: right;
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import AddIcon from '@mui/icons-material/Add';
 
-function SubtaskList({ subtasks, onCreateSubtask, taskId }) {
+function SubtaskList({ subtasks, onCreateSubtask, taskId, onToggleSubtaskComplete }) {
   const [showSubtasks, setShowSubtasks] = useState(false);
 
   // Local state for subtask creation:
@@ -31,9 +32,9 @@ function SubtaskList({ subtasks, onCreateSubtask, taskId }) {
   }
 
   return (
-    <div style={{ marginTop: "1rem", marginLeft: "1rem" }}>
-      <button onClick={toggleSubtasks}>
-        {showSubtasks ? "Hide" : "Subtasks"}
+    <div className="subtask-header">
+      <button onClick={toggleSubtasks} className="toggleBtn">
+        {showSubtasks ? "Hide Subtasks" : "+ Create Subtask"}
       </button>
 
       {/* If showing, display subtask list + creation form */}
@@ -41,30 +42,32 @@ function SubtaskList({ subtasks, onCreateSubtask, taskId }) {
         <div className="subtask-section">
           <h4>Subtasks ({subtasks.length})</h4>
 
-          {/* List of existing subtasks */}
-          {subtasks.map((st) => (
-            <div key={st.id} style={{ marginLeft: "1rem" }}>
+            {/* List of existing subtasks */}
+            {subtasks.map((st) => (
+            <div
+              key={st.id}
+              className="subtask-item">
               <input
                 type="checkbox"
                 checked={st.completed}
-                disabled
-                readOnly
+                onChange={() => onToggleSubtaskComplete(taskId, st.id, st.completed)}
               />
-              <span style={{ marginLeft: "0.5rem" }}>
-                {st.title} - {st.completed ? "Done" : "Pending"}
+              <span
+                style={{textDecoration: st.completed ? "line-through" : "none"}}>
+                <strong>{st.title}</strong> - {st.content} -{" "}
+                {st.completed ? "Done" : "Pending"}
               </span>
             </div>
           ))}
 
           {/* Creation form */}
-          <form onSubmit={submitSubtask} style={{ marginTop: "1rem" }}>
+          <form onSubmit={submitSubtask} className="subtask-form">
             <input
               type="text"
               name="title"
               placeholder="Subtask Title"
               value={subtask.title}
               onChange={handleChange}
-              style={{ marginRight: "0.5rem" }}
             />
             <input
               type="text"
@@ -72,9 +75,10 @@ function SubtaskList({ subtasks, onCreateSubtask, taskId }) {
               placeholder="Subtask Content"
               value={subtask.content}
               onChange={handleChange}
-              style={{ marginRight: "0.5rem" }}
             />
-            <button type="submit">Add Subtask</button>
+            <button className="addBtn" type="submit">
+              <AddIcon />
+            </button>
           </form>
         </div>
       )}

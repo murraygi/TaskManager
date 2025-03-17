@@ -28,6 +28,7 @@ function Task(props) {
         subtasks={props.subtasks || []}
         taskId={props.id}
         onCreateSubtask={props.onCreateSubtask}
+        onToggleSubtaskComplete={props.toggleSubtaskComplete}
        />
    </div>
   );
