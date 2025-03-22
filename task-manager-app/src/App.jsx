@@ -7,82 +7,84 @@ import TaskEditMode from "./components/TaskEditMode";
 import { useTasks } from "./hooks/useTasks";
 
 function App() {
-  // Read the api query param at initialisation
+  // 1) Decide if we are in REST or GraphQL from URL param
   const searchParams = new URLSearchParams(window.location.search);
   const initialMode = searchParams.get("api") === "graphql";
-
-  //useState default depending on query param
   const [useGraphQL, setUseGraphQL] = useState(initialMode);
 
-  // On toggle, update both local state + the query param
+  // 2) Toggle button
   function toggleMode() {
-    // If using REST, switch to GraphQL, else REST
-    const newMode = !useGraphQL ? "graphql" : "rest";
-
-    // Update the URL param
+    const newMode = useGraphQL ? "rest" : "graphql";
     const params = new URLSearchParams(window.location.search);
     params.set("api", newMode);
-    // Replace current URL with new query param 
     window.history.replaceState({}, "", `?${params.toString()}`);
-
-    // Update local state
     setUseGraphQL(!useGraphQL);
   }
 
-  // Destructure from the relevant hook
+  // 3) Our main tasks hook
   const {
     tasks,
-    addTask,
-    toggleComplete,
-    deleteTask,
-    saveTask,
-    loadMore,
     hasMore,
     loading,
+    loadMore,
+    addTask,
+    saveTask,
+    deleteTask,
+    toggleComplete,
     createSubtask,
     toggleSubtaskComplete
   } = useTasks(useGraphQL);
-  
-  // For editing tasks
+
+  // 4) Edit state
   const [editingTaskId, setEditingTaskId] = useState(null);
+  const editingTask = tasks.find((t) => t.id === editingTaskId);
 
   function editTask(id) {
     setEditingTaskId(id);
   }
+  
   function cancelEdit() {
     setEditingTaskId(null);
   }
-
-  // Find the task that is currently being edited
-  const editingTask = tasks.find((task) => task.id === editingTaskId);
   
+  // New function that wraps the saveTask function
+  function handleSaveTask(id, taskData) {
+    saveTask(id, taskData);
+    setEditingTaskId(null); // Exit edit mode after saving
+  }
+
   return (
     <div className="testMain">
       <Header />
       <button onClick={toggleMode}>
         Switch to {useGraphQL ? "REST" : "GraphQL"}
       </button>
+
+      {/* Create new tasks */}
       <TaskCreation onAdd={addTask} />
+
+      {/* If editing, show the edit form */}
       {editingTaskId ? (
         <TaskEditMode
           id={editingTaskId}
-          task={tasks.find((task) => task.id === editingTaskId)}
-          onSave={saveTask}
-          onCancel={() => setEditingTaskId(null)}
+          task={editingTask}
+          onSave={handleSaveTask}
+          onCancel={cancelEdit}
         />
       ) : (
         <TaskList
-        tasks={tasks}
-        onToggleComplete={toggleComplete}
-        onDelete={deleteTask}
-        onEdit={editTask}
-        loadMore={loadMore}
-        hasMore={hasMore}
-        loading={loading}
-        onCreateSubtask={createSubtask}
-        toggleSubtaskComplete={toggleSubtaskComplete}
+          tasks={tasks}
+          hasMore={hasMore}
+          loading={loading}
+          loadMore={loadMore}
+          onEdit={editTask}
+          onDelete={deleteTask}
+          onToggleComplete={toggleComplete}
+          onCreateSubtask={createSubtask}
+          toggleSubtaskComplete={toggleSubtaskComplete}
         />
       )}
+
       <Footer />
     </div>
   );

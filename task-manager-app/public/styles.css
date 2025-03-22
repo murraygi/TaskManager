@@ -335,18 +335,6 @@ form.create-task button:hover {
   background-color: #cc0000;
 }
 
-/* .subtask-header {
-  display: flex;
-  align-items: flex-end;
-  margin-bottom: 0.5rem;
-}
-
-.subtask-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-} */
-
 button.toggleBtn {
   background-color: #1e3799;
   color: white;
