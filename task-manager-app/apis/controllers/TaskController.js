@@ -1,4 +1,5 @@
 const Task = require("../rest/models/Task");
+const Subtask = require("../rest/models/Subtask");
 
 class TaskController {
   static async getTasksPaginated(page, limit) {
@@ -8,6 +9,12 @@ class TaskController {
         limit,
         offset,
         order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: Subtask,
+            as: "subtasks",
+          },
+        ],
       });
 
       return { rows, total: count };
@@ -21,7 +28,14 @@ class TaskController {
   }
 
   static async getTaskById(id) {
-    return await Task.findByPk(id);
+    return await Task.findByPk(id, {
+      include: [
+        {
+          model: Subtask,
+          as: "subtasks",
+        },
+      ],
+    });
   }
 
   static async createTask(data) {

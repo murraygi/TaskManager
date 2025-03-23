@@ -21,9 +21,7 @@ const resolvers = {
   },
 
   Task: {
-    subtasks: async (parent) => {
-      return await SubtaskController.getSubtasksByTaskId(parent.id);
-    },
+    subtasks: (parent) => parent.subtasks
   },
 
   Mutation: {

@@ -1,130 +1,75 @@
 /**
  * Usage:
- *   node generateData.js rest 1000
- *     -> Inserts 1000 tasks into the REST API
- *   node generateData.js graphql 500
- *     -> Inserts 500 tasks into the GraphQL API
+ *   node generateData.js 1000 0
+ *     -> Inserts 1000 tasks with 0 subtasks each
+ *   node generateData.js 500 3
+ *     -> Inserts 500 tasks with 3 subtasks each
  */
 
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-// Default endpoints (change as needed)
-const REST_URL = "http://localhost:5050/api/tasks";
-const SUBTASKS_REST_URL = "http://localhost:5050/api/subtasks";
-const GRAPHQL_URL = "http://localhost:5050/graphql";
+const REST_TASK_URL = "http://localhost:5050/api/tasks";
+const REST_SUBTASK_URL = "http://localhost:5050/api/subtasks";
 
-// Default # of tasks and # of subtasks per task
+// Defaults
 let NUM_TASKS = 1000;
-const SUBTASKS_PER_TASK = 3;
+let SUBTASKS_PER_TASK = 3;
 
-// Read args: [node, generateData.js, "rest"|"graphql", optional number]
+// CLI args
 const args = process.argv.slice(2);
-const apiType = args[0]; // "rest" or "graphql"
-if (args[1]) {
-  NUM_TASKS = parseInt(args[1], 10);
-}
+if (args[0]) NUM_TASKS = parseInt(args[0], 10);
+if (args[1]) SUBTASKS_PER_TASK = parseInt(args[1], 10);
 
-// Validate
-if (apiType !== "rest" && apiType !== "graphql") {
-  console.error("Please specify 'rest' or 'graphql', e.g.:");
-  console.error("  node generateData.js rest 1000");
-  process.exit(1);
-}
+console.log(`🚀 Inserting ${NUM_TASKS} tasks with ${SUBTASKS_PER_TASK} subtasks each...`);
 
-console.log(`Preparing to insert ${NUM_TASKS} tasks into the ${apiType.toUpperCase()} API...`);
-
-async function createRestTask(title, content) {
-  const response = await fetch(REST_URL, {
+async function createTask(title, content) {
+  const response = await fetch(REST_TASK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, content }),
   });
-  if (!response.ok) throw new Error("Failed to create REST task");
+
+  if (!response.ok) throw new Error(`Failed to create task: ${title}`);
   const result = await response.json();
-  return result.id; // assumed your REST returns {id, ...}
+  return result.id;
 }
 
-async function createGraphQLTask(title, content) {
-  const mutation = `
-    mutation($title: String!, $content: String!) {
-      createTask(title: $title, content: $content) {
-        id
-      }
-    }
-  `;
-  const response = await fetch(GRAPHQL_URL, {
+async function createSubtask(taskId, title) {
+  const response = await fetch(REST_SUBTASK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: mutation,
-      variables: { title, content },
+      taskId,
+      title,
+      content: "some content",
+      completed: false,
     }),
   });
-  if (!response.ok) throw new Error("Failed to create GraphQL task");
-  const result = await response.json();
-  return result.data.createTask.id;
+
+  if (!response.ok) throw new Error(`Failed to create subtask: ${title}`);
 }
 
-async function createRestSubtask(taskId, title) {
-  const response = await fetch(SUBTASKS_REST_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ taskId, title, content: "some content", completed: false }),
-  });
-  if (!response.ok) throw new Error("Failed to create REST subtask");
-}
-
-async function createGraphQLSubtask(taskId, title) {
-  const mutation = `
-    mutation($taskId: Int!, $title: String!) {
-      createSubtask(taskId: $taskId, title: $title, content: "some content", completed: false) {
-        id
-      }
-    }
-  `;
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: mutation,
-      variables: { taskId: taskId, title },
-    }),
-  });
-  if (!response.ok) throw new Error("Failed to create GraphQL subtask");
-}
-
-async function insertTasks(api, num) {
+async function insertTasks(num, subtasksPerTask) {
   for (let i = 1; i <= num; i++) {
     const title = `Task ${i}`;
     const content = `Content for Task ${i}`;
-    let newTaskId;
+    const taskId = await createTask(title, content);
 
-    if (api === "rest") {
-      newTaskId = await createRestTask(title, content);
-    } else {
-      newTaskId = await createGraphQLTask(title, content);
-    }
-
-    // Create subtasks for each task
-    for (let s = 1; s <= SUBTASKS_PER_TASK; s++) {
+    for (let s = 1; s <= subtasksPerTask; s++) {
       const subTitle = `Subtask ${s} of Task ${i}`;
-      if (api === "rest") {
-        await createRestSubtask(newTaskId, subTitle);
-      } else {
-        await createGraphQLSubtask(newTaskId, subTitle);
-      }
+      await createSubtask(taskId, subTitle);
     }
 
     if (i % 100 === 0) {
-      console.log(`Inserted ${i} tasks so far...`);
+      console.log(`Inserted ${i} tasks...`);
     }
   }
 }
 
 (async function main() {
   try {
-    await insertTasks(apiType, NUM_TASKS);
-    console.log(`✅ Successfully inserted ${NUM_TASKS} tasks into ${apiType.toUpperCase()} API`);
+    await insertTasks(NUM_TASKS, SUBTASKS_PER_TASK);
+    console.log(`Done! Inserted ${NUM_TASKS} tasks with ${SUBTASKS_PER_TASK} subtasks each.`);
   } catch (err) {
     console.error("Error:", err);
   }

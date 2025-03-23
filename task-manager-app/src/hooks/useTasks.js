@@ -21,7 +21,7 @@ export function useTasks(isGraphQL) {
   // -----------------------------
   const fetchTasks = useCallback(
     async (currentPage) => {
-      console.log("🔎 fetchTasks() called:", { currentPage, isGraphQL });
+      console.log("fetchTasks() called:", { currentPage, isGraphQL });
       
       // Use ref to prevent concurrent fetch calls
       if (loadingRef.current || !hasMore) return;
@@ -113,7 +113,7 @@ export function useTasks(isGraphQL) {
   // 2) Reset whenever isGraphQL changes
   // -----------------------------
   useEffect(() => {
-    console.log("🔄 Switching API mode, reset state");
+    console.log("Switching API mode, reset state");
     
     // Clear the loading ref to ensure we can fetch after reset
     loadingRef.current = false;
