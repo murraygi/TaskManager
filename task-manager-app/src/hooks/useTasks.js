@@ -7,7 +7,7 @@ export function useTasks(isGraphQL) {
   const [loading, setLoading] = useState(false);
   const loadingRef = useRef(false);
 
-  const limit = 10; // Number of tasks per page
+  const limit = 1000; // Number of tasks per page
 
   // Helper to remove duplicates if the same task ID appears multiple times
   function deduplicateTasks(taskArray) {
