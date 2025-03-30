@@ -25,8 +25,25 @@ const resolvers = {
   },
 
   Mutation: {
-    createTask: async (_, { title, content, priority, completed }) => {
-      return await TaskController.createTask({ title, content, priority, completed });
+    createTask: async (_, { title, content, priority, completed, subtasks = [] }) => {
+      // 1) Create the main task
+      const createdTask = await TaskController.createTask({ title, content, priority, completed });
+
+      // 2) If there are any subtasks, create them
+      if (subtasks.length > 0) {
+        await Promise.all(
+          subtasks.map((st) =>
+            SubtaskController.createSubtask({
+              taskId: createdTask.id,
+              title: st.title,
+              content: st.content,
+              completed: !!st.completed
+            })
+          )
+        );
+     }
+      // 3) Return the newly created Task *with* subtasks
+      return await TaskController.getTaskById(createdTask.id);
     },
 
     updateTask: async (_, { id, ...updates }) => {

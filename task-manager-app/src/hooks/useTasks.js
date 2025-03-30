@@ -7,28 +7,18 @@ export function useTasks(isGraphQL) {
   const [loading, setLoading] = useState(false);
   const loadingRef = useRef(false);
 
-  const limit = 1000; // Number of tasks per page
+  const limit = 1000;
 
-  // Helper to remove duplicates if the same task ID appears multiple times
   function deduplicateTasks(taskArray) {
-    return Array.from(
-      new Map(taskArray.map((t) => [t.id, t])).values()
-    );
+    return Array.from(new Map(taskArray.map((t) => [t.id, t])).values());
   }
 
-  // -----------------------------
-  // 1) Actual fetch logic
-  // -----------------------------
   const fetchTasks = useCallback(
     async (currentPage) => {
-      console.log("fetchTasks() called:", { currentPage, isGraphQL });
-      
-      // Use ref to prevent concurrent fetch calls
       if (loadingRef.current || !hasMore) return;
-      
       loadingRef.current = true;
       setLoading(true);
-      
+
       try {
         if (!isGraphQL) {
           // --- REST ---
@@ -38,13 +28,12 @@ export function useTasks(isGraphQL) {
           if (!response.ok) {
             throw new Error("Failed to fetch tasks (REST)");
           }
-          const data = await response.json(); // => { tasks: [...], total: number }
+          const data = await response.json();
           const { tasks: newTasks, total } = data;
 
           setTasks((prev) => {
             const combined = [...prev, ...newTasks];
             const unique = deduplicateTasks(combined);
-            // if we've now got all tasks, hasMore -> false
             if (unique.length >= total) {
               setHasMore(false);
             }
@@ -82,14 +71,11 @@ export function useTasks(isGraphQL) {
             throw new Error("Failed to fetch tasks (GraphQL)");
           }
           const result = await response.json();
-          
-          // Check for GraphQL errors
           if (result.errors) {
             throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
           }
-          
-          const { rows, total } = result.data.tasks;
 
+          const { rows, total } = result.data.tasks;
           setTasks((prev) => {
             const combined = [...prev, ...rows];
             const unique = deduplicateTasks(combined);
@@ -106,71 +92,105 @@ export function useTasks(isGraphQL) {
         loadingRef.current = false;
       }
     },
-    [isGraphQL, hasMore] // Only depend on isGraphQL and hasMore
+    [isGraphQL, hasMore]
   );
 
-  // -----------------------------
-  // 2) Reset whenever isGraphQL changes
-  // -----------------------------
   useEffect(() => {
-    console.log("Switching API mode, reset state");
-    
-    // Clear the loading ref to ensure we can fetch after reset
     loadingRef.current = false;
-    
-    // Reset all state
     setTasks([]);
     setLoading(false);
     setHasMore(true);
-    
-    // Reset page last (this will trigger the effect below)
     setPage(1);
   }, [isGraphQL]);
 
-  // -----------------------------
-  // 3) Whenever page changes, fetch
-  // -----------------------------
   useEffect(() => {
-    // Only fetch if we're not already loading and page is valid
     if (page > 0 && !loadingRef.current) {
       fetchTasks(page);
     }
   }, [page, fetchTasks]);
 
-  // -----------------------------
-  // loadMore triggered by scroll or button
-  // -----------------------------
   function loadMore() {
     if (!loadingRef.current && hasMore) {
-      console.log("⏭ loadMore() -> next page:", page + 1);
       setPage((old) => old + 1);
     }
   }
 
-  // ------------------------------------------------------------------
-  // 4) Task CRUD + subtask logic
-  // ------------------------------------------------------------------
+  // ---------------------------------
+  //  CREATE / UPDATE / DELETE TASKS
+  // ---------------------------------
 
-  // a) Add new task
+  // a) Add new task (single or multiple subtasks if GraphQL)
   async function addTask(newTask) {
     try {
       if (!isGraphQL) {
-        const res = await fetch("http://localhost:5050/api/tasks", {
+        // Step 1 - Create the main task
+        const taskRes = await fetch("http://localhost:5050/api/tasks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newTask),
+          body: JSON.stringify({
+            title: newTask.title,
+            content: newTask.content,
+            priority: newTask.priority,
+            completed: newTask.completed || false,
+          }),
         });
-        if (!res.ok) throw new Error("Failed to add task (REST)");
-        const created = await res.json();
-        setTasks((prev) => deduplicateTasks([...prev, created]));
+  
+        if (!taskRes.ok) throw new Error("Failed to add task (REST)");
+  
+        const createdTask = await taskRes.json();
+  
+        // Step 2 - Create subtasks (if any)
+        const subtasks = newTask.subtasks || [];
+        const createdSubtasks = [];
+  
+        for (const subtask of subtasks) {
+          const subRes = await fetch("http://localhost:5050/api/subtasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              taskId: createdTask.id,
+              title: subtask.title,
+              content: subtask.content,
+              completed: !!subtask.completed,
+            }),
+          });
+  
+          if (subRes.ok) {
+            const created = await subRes.json();
+            createdSubtasks.push(created);
+          } else {
+            console.warn("Failed to add subtask:", subtask.title);
+          }
+        }
+  
+        // Step 3 - Update state with task + subtasks
+        setTasks((prev) =>
+          deduplicateTasks([
+            ...prev,
+            { ...createdTask, subtasks: createdSubtasks },
+          ])
+        );      
       } else {
-        const res = await fetch("http://localhost:5050/graphql", {
+        // --- GraphQL ---
+        const response = await fetch("http://localhost:5050/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             query: `
-              mutation($title: String!, $content: String!, $priority: String, $completed: Boolean) {
-                createTask(title: $title, content: $content, priority: $priority, completed: $completed) {
+              mutation(
+                $title: String!,
+                $content: String,
+                $priority: String,
+                $completed: Boolean,
+                $subtasks: [SubtaskInput]
+              ) {
+                createTask(
+                  title: $title,
+                  content: $content,
+                  priority: $priority,
+                  completed: $completed,
+                  subtasks: $subtasks
+                ) {
                   id
                   title
                   content
@@ -179,6 +199,7 @@ export function useTasks(isGraphQL) {
                   subtasks {
                     id
                     title
+                    content
                     completed
                   }
                 }
@@ -187,8 +208,8 @@ export function useTasks(isGraphQL) {
             variables: newTask,
           }),
         });
-        if (!res.ok) throw new Error("Failed to add task (GraphQL)");
-        const result = await res.json();
+        if (!response.ok) throw new Error("Failed to add task (GraphQL)");
+        const result = await response.json();
         if (result.errors) {
           throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         }
@@ -200,11 +221,10 @@ export function useTasks(isGraphQL) {
     }
   }
 
-  // b) Save or update an existing task
+  // b) Update an existing task
   async function saveTask(id, updatedTask) {
     try {
       if (!isGraphQL) {
-        // REST
         const res = await fetch(`http://localhost:5050/api/tasks/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -216,7 +236,6 @@ export function useTasks(isGraphQL) {
           prev.map((t) => (t.id === id ? { ...t, ...updated } : t))
         );
       } else {
-        // GraphQL
         const res = await fetch("http://localhost:5050/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -251,18 +270,16 @@ export function useTasks(isGraphQL) {
     }
   }
 
-  // c) Delete an existing task
+  // c) Delete a task
   async function deleteTask(id) {
     try {
       if (!isGraphQL) {
-        // REST
         const res = await fetch(`http://localhost:5050/api/tasks/${id}`, {
           method: "DELETE",
         });
         if (!res.ok) throw new Error("Failed to delete task (REST)");
         setTasks((prev) => prev.filter((t) => t.id !== id));
       } else {
-        // GraphQL
         const res = await fetch("http://localhost:5050/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -291,7 +308,6 @@ export function useTasks(isGraphQL) {
       const newCompleted = !target.completed;
 
       if (!isGraphQL) {
-        // REST
         const res = await fetch(`http://localhost:5050/api/tasks/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -301,7 +317,6 @@ export function useTasks(isGraphQL) {
         const updated = await res.json();
         setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
       } else {
-        // GraphQL
         const res = await fetch("http://localhost:5050/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -323,7 +338,6 @@ export function useTasks(isGraphQL) {
           throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         }
         const updated = result.data.updateTask;
-        // Merge only the completed field
         setTasks((prev) =>
           prev.map((t) => (t.id === id ? { ...t, completed: updated.completed } : t))
         );
@@ -333,11 +347,10 @@ export function useTasks(isGraphQL) {
     }
   }
 
-  // e) Create subtask
+  // e) Create subtask (standalone for existing tasks)
   async function createSubtask(taskId, subtaskData) {
     try {
       if (!isGraphQL) {
-        // REST
         const res = await fetch("http://localhost:5050/api/subtasks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -353,7 +366,6 @@ export function useTasks(isGraphQL) {
           )
         );
       } else {
-        // GraphQL
         const res = await fetch("http://localhost:5050/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -395,7 +407,6 @@ export function useTasks(isGraphQL) {
     const newCompleted = !currentCompleted;
     try {
       if (!isGraphQL) {
-        // REST
         const res = await fetch(`http://localhost:5050/api/subtasks/${subtaskId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -414,7 +425,6 @@ export function useTasks(isGraphQL) {
           )
         );
       } else {
-        // GraphQL
         const res = await fetch("http://localhost:5050/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -459,12 +469,10 @@ export function useTasks(isGraphQL) {
     hasMore,
     loading,
     loadMore,
-    // main tasks
     addTask,
     saveTask,
     deleteTask,
     toggleComplete,
-    // subtasks
     createSubtask,
     toggleSubtaskComplete,
   };

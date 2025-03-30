@@ -17,41 +17,42 @@ function TaskList({
   // Reference to the loading element
   const loadingRef = useRef();
 
-  // Setup the intersection observer using useCallback
-  const setupObserver = useCallback(() => {
-    // Disconnect any existing observer
+  // REPLACEMENT: Throttled IntersectionObserver
+useEffect(() => {
+  let timeout = null;
+
+  if (observer.current) {
+    observer.current.disconnect();
+  }
+
+  observer.current = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && hasMore && !loading) {
+      if (!timeout) {
+        console.log("Intersection observer triggered loadMore");
+        loadMore();
+
+        timeout = setTimeout(() => {
+          timeout = null;
+        }, 500); // prevent spam by waiting 500ms
+      }
+    }
+  }, {
+    rootMargin: '100px'
+  });
+
+  if (loadingRef.current) {
+    observer.current.observe(loadingRef.current);
+  }
+
+  return () => {
     if (observer.current) {
       observer.current.disconnect();
     }
-
-    // Create a new observer
-    observer.current = new IntersectionObserver(entries => {
-      // If the loading element is visible and we have more items to load
-      if (entries[0].isIntersecting && hasMore && !loading) {
-        console.log("Intersection observer triggered loadMore");
-        loadMore();
-      }
-    }, { 
-      rootMargin: '100px' // Load more when element is 100px from viewport
-    });
-
-    // Observe the loading element if it exists
-    if (loadingRef.current) {
-      observer.current.observe(loadingRef.current);
+    if (timeout) {
+      clearTimeout(timeout);
     }
-  }, [hasMore, loading, loadMore]);
-
-  // Setup the observer when component mounts or dependencies change
-  useEffect(() => {
-    setupObserver();
-    
-    // Cleanup
-    return () => {
-      if (observer.current) {
-        observer.current.disconnect();
-      }
-    };
-  }, [setupObserver]);
+  };
+}, [hasMore, loading, loadMore]);
 
   return (
     <div className="task-list">

@@ -45,13 +45,20 @@ module.exports = createSchema({
       subtasks(taskId: Int!, page: Int, limit: Int): SubtaskConnection
     }
 
+    input SubtaskInput {
+      title: String!
+      content: String
+      completed: Boolean
+    }
+
     type Mutation {
       # Create a task
       createTask(
         title: String!
-        content: String!
+        content: String
         priority: String
         completed: Boolean
+        subtasks: [SubtaskInput]
       ): Task
 
       # Update a task
@@ -70,7 +77,7 @@ module.exports = createSchema({
       createSubtask(
         taskId: Int!
         title: String!
-        content: String!
+        content: String
         completed: Boolean
       ): Subtask
 

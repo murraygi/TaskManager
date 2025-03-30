@@ -350,3 +350,14 @@ button.addBtn {
   padding-top: 0.2rem;
   float: right;
 }
+
+button.subTaskBTN {
+  position: relative !important;
+  margin-left: 1% !important;
+}
+
+@media screen and (max-width: 768px) {
+  button.subTaskBTN  {
+    margin-left: 3.5% !important;
+  }
+}

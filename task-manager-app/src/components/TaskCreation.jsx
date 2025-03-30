@@ -5,6 +5,9 @@ import { Fab, Zoom } from "@mui/material";
 function TaskCreation(props) {
   const [isExpanded, setExpanded] = useState(false);
   const [task, setTask] = useState({ title: "", content: "", priority: "" });
+
+  // Track subtasks here
+  const [subtasks, setSubtasks] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
   const formRef = useRef(null);
 
@@ -14,31 +17,47 @@ function TaskCreation(props) {
     setValidationErrors((prev) => ({ ...prev, [name]: "" }));
   }
 
+  function handleSubtaskChange(idx, event) {
+    const { name, value } = event.target;
+    setSubtasks((prev) => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], [name]: value };
+      return updated;
+    });
+  }
+
+  function addSubtaskRow() {
+    setSubtasks((prev) => [...prev, { title: "", content: "", completed: false }]);
+  }
+
+  function removeSubtaskRow(idx) {
+    setSubtasks((prev) => prev.filter((_, i) => i !== idx));
+  }
+
   async function submitTask(event) {
     event.preventDefault();
     const errors = {};
-
     if (!task.title.trim()) {
       errors.title = "Title is required.";
     }
     if (!task.content.trim()) {
       errors.content = "Content is required.";
     }
-
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
 
-    // Instead of fetching here, just pass it upward:
     props.onAdd({
       title: task.title,
       content: task.content,
-      priority: task.priority || "Low"
+      priority: task.priority || "Low",
+      // Only used by GraphQL path. If REST is selected, it just ignores it.
+      subtasks: subtasks
     });
 
-    // Reset after passing the new task
     setTask({ title: "", content: "", priority: "" });
+    setSubtasks([]);
     setValidationErrors({});
     setExpanded(false);
   }
@@ -48,8 +67,8 @@ function TaskCreation(props) {
   }
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (formRef.current && !formRef.current.contains(event.target)) {
+    function handleClickOutside(e) {
+      if (formRef.current && !formRef.current.contains(e.target)) {
         setExpanded(false);
       }
     }
@@ -93,14 +112,38 @@ function TaskCreation(props) {
           rows={isExpanded ? 3 : 1}
           maxLength="20000"
           className={validationErrors.content ? "input-error" : ""}
-          style={{
-            maxHeight: "200px",
-            overflowY: "auto",
-            resize: "vertical"
-          }}
+          style={{ maxHeight: "200px", overflowY: "auto", resize: "vertical" }}
         />
         {validationErrors.content && (
           <p className="error-message">{validationErrors.content}</p>
+        )}
+
+        {isExpanded && (
+          <div className="subtask-creation-area">
+            <h4>Subtasks</h4>
+            {subtasks.map((st, idx) => (
+              <div key={idx} className="subtask-row">
+                <input
+                  type="text"
+                  name="title"
+                  placeholder="Subtask Title"
+                  value={st.title}
+                  onChange={(e) => handleSubtaskChange(idx, e)}
+                />
+                <input
+                  type="text"
+                  name="content"
+                  placeholder="Subtask Content"
+                  value={st.content}
+                  onChange={(e) => handleSubtaskChange(idx, e)}
+                />
+                <button type="button" onClick={() => removeSubtaskRow(idx)}>Remove</button>
+              </div>
+            ))}
+            <button className="subTaskBTN" type="button" onClick={addSubtaskRow}>
+              + Add
+            </button>
+          </div>
         )}
 
         <Zoom in={isExpanded}>
