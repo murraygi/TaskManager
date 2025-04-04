@@ -7,12 +7,12 @@ import TaskEditMode from "./components/TaskEditMode";
 import { useTasks } from "./hooks/useTasks";
 
 function App() {
-  // 1) Decide if we are in REST or GraphQL from URL param
+  // 1) Figure out if we are in REST or GraphQL based on the URL param
   const searchParams = new URLSearchParams(window.location.search);
   const initialMode = searchParams.get("api") === "graphql";
   const [useGraphQL, setUseGraphQL] = useState(initialMode);
 
-  // 2) Toggle button
+  // 2) Toggle button for REST and GraohQL that updates the URL
   function toggleMode() {
     const newMode = useGraphQL ? "rest" : "graphql";
     const params = new URLSearchParams(window.location.search);
@@ -21,7 +21,7 @@ function App() {
     setUseGraphQL(!useGraphQL);
   }
 
-  // 3) Our main tasks hook
+  // 3) Hook for fetching tasks (depending on REST or GraphQL mode)
   const {
     tasks,
     hasMore,
@@ -35,7 +35,7 @@ function App() {
     toggleSubtaskComplete
   } = useTasks(useGraphQL);
 
-  // 4) Edit state
+  // 4) Edit state - tracks which task (if any) is being edited
   const [editingTaskId, setEditingTaskId] = useState(null);
   const editingTask = tasks.find((t) => t.id === editingTaskId);
 
@@ -47,7 +47,7 @@ function App() {
     setEditingTaskId(null);
   }
   
-  // New function that wraps the saveTask function
+  // Called when a task is saved
   function handleSaveTask(id, taskData) {
     saveTask(id, taskData);
     setEditingTaskId(null); // Exit edit mode after saving
@@ -60,10 +60,10 @@ function App() {
         Switch to {useGraphQL ? "REST" : "GraphQL"}
       </button>
 
-      {/* Create new tasks */}
+      {/* Form to create new tasks */}
       <TaskCreation onAdd={addTask} />
 
-      {/* If editing, show the edit form */}
+      {/* If editing, show the edit form, otherwise show the task list */}
       {editingTaskId ? (
         <TaskEditMode
           id={editingTaskId}

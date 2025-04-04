@@ -1,7 +1,6 @@
 /**
- * Usage:
  *   node generateBigData.js 1000 3
- *     -> Inserts 1000 tasks, each with 3 subtasks, using long text fields
+ *     -> Inserts 1000 tasks, with 3 subtasks, using long text fields
  */
 
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));

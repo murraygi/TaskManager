@@ -1,7 +1,4 @@
 /**
- * Usage:
- *   node generateData.js 1000 0
- *     -> Inserts 1000 tasks with 0 subtasks each
  *   node generateData.js 500 3
  *     -> Inserts 500 tasks with 3 subtasks each
  */

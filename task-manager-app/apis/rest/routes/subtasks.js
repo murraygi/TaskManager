@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const SubtaskController = require("../../controllers/SubtaskController");
 
-// GET paginated subtasks with query ?taskId=1&page=1&limit=5
+// GET paginated subtasks with query ?taskId=1&page=1&limit=10
 router.get('/', async (req, res) => {
   try {
     const { taskId, page = 1, limit = 10 } = req.query;

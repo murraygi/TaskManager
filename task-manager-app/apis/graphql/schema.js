@@ -2,6 +2,10 @@ const { createSchema } = require('graphql-yoga');
 
 module.exports = createSchema({
   typeDefs: `
+    # -----------------------------
+    # Types
+    # -----------------------------
+
     type Task {
       id: Int
       title: String
@@ -23,7 +27,10 @@ module.exports = createSchema({
       updatedAt: String
     }
 
+    # -----------------------------
     # Pagination Response Types
+    # -----------------------------
+
     type TaskConnection {
       rows: [Task]
       total: Int
@@ -34,16 +41,24 @@ module.exports = createSchema({
       total: Int
     }
 
+    # -----------------------------
+    # Queries
+    # -----------------------------
+
     type Query {
-      # Fetch paginated tasks
+      # Get paginated tasks (includes subtasks)
       tasks(page: Int, limit: Int): TaskConnection
 
-      # Fetch a single task by ID (including subtasks)
+      # Get a specific task by ID
       task(id: Int!): Task
 
-      # Fetch paginated subtasks for a specific task
+      # Get paginated subtasks for a task
       subtasks(taskId: Int!, page: Int, limit: Int): SubtaskConnection
     }
+
+    # -----------------------------
+    # Input Types
+    # -----------------------------
 
     input SubtaskInput {
       title: String!
@@ -51,8 +66,12 @@ module.exports = createSchema({
       completed: Boolean
     }
 
+    # -----------------------------
+    # Mutations
+    # -----------------------------
+
     type Mutation {
-      # Create a task
+      # Create a task (optionally with subtasks)
       createTask(
         title: String!
         content: String
@@ -70,10 +89,10 @@ module.exports = createSchema({
         completed: Boolean
       ): Task
 
-      # Delete a task
+      # Delete a task by ID
       deleteTask(id: Int!): String
 
-      # Create a subtask
+      # Create a single subtask
       createSubtask(
         taskId: Int!
         title: String!
@@ -89,7 +108,7 @@ module.exports = createSchema({
         completed: Boolean
       ): Subtask
 
-      # Delete a subtask
+      # Delete a subtask by ID
       deleteSubtask(id: Int!): String
     }
   `,

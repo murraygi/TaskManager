@@ -1,21 +1,27 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 export function useTasks(isGraphQL) {
+  // Local state
   const [tasks, setTasks] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // Ref to block duplicate fetches
   const loadingRef = useRef(false);
 
   const limit = 1000;
 
+  // Prevent duplicate tasks by ID
   function deduplicateTasks(taskArray) {
     return Array.from(new Map(taskArray.map((t) => [t.id, t])).values());
   }
 
+  // Fetch paginated tasks (REST or GraphQL)
   const fetchTasks = useCallback(
     async (currentPage) => {
       if (loadingRef.current || !hasMore) return;
+
       loadingRef.current = true;
       setLoading(true);
 
@@ -25,20 +31,18 @@ export function useTasks(isGraphQL) {
           const response = await fetch(
             `http://localhost:5050/api/tasks?page=${currentPage}&limit=${limit}`
           );
-          if (!response.ok) {
-            throw new Error("Failed to fetch tasks (REST)");
-          }
+          if (!response.ok) throw new Error("Failed to fetch tasks (REST)");
+
           const data = await response.json();
           const { tasks: newTasks, total } = data;
 
           setTasks((prev) => {
             const combined = [...prev, ...newTasks];
             const unique = deduplicateTasks(combined);
-            if (unique.length >= total) {
-              setHasMore(false);
-            }
+            if (unique.length >= total) setHasMore(false);
             return unique;
           });
+
         } else {
           // --- GraphQL ---
           const response = await fetch("http://localhost:5050/graphql", {
@@ -49,16 +53,8 @@ export function useTasks(isGraphQL) {
                 query($page: Int, $limit: Int) {
                   tasks(page: $page, limit: $limit) {
                     rows {
-                      id
-                      title
-                      content
-                      priority
-                      completed
-                      subtasks {
-                        id
-                        title
-                        completed
-                      }
+                      id title content priority completed
+                      subtasks { id title completed }
                     }
                     total
                   }
@@ -67,21 +63,17 @@ export function useTasks(isGraphQL) {
               variables: { page: currentPage, limit },
             }),
           });
-          if (!response.ok) {
-            throw new Error("Failed to fetch tasks (GraphQL)");
-          }
+
+          if (!response.ok) throw new Error("Failed to fetch tasks (GraphQL)");
           const result = await response.json();
-          if (result.errors) {
-            throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-          }
+          if (result.errors) throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
 
           const { rows, total } = result.data.tasks;
+
           setTasks((prev) => {
             const combined = [...prev, ...rows];
             const unique = deduplicateTasks(combined);
-            if (unique.length >= total) {
-              setHasMore(false);
-            }
+            if (unique.length >= total) setHasMore(false);
             return unique;
           });
         }
@@ -95,6 +87,7 @@ export function useTasks(isGraphQL) {
     [isGraphQL, hasMore]
   );
 
+  // Reset when switching between REST/GraphQL
   useEffect(() => {
     loadingRef.current = false;
     setTasks([]);
@@ -103,27 +96,29 @@ export function useTasks(isGraphQL) {
     setPage(1);
   }, [isGraphQL]);
 
+  // Fetch tasks when page changes
   useEffect(() => {
     if (page > 0 && !loadingRef.current) {
       fetchTasks(page);
     }
   }, [page, fetchTasks]);
 
+  // Used by scroll observer to load the next page
   function loadMore() {
     if (!loadingRef.current && hasMore) {
       setPage((old) => old + 1);
     }
   }
 
-  // ---------------------------------
-  //  CREATE / UPDATE / DELETE TASKS
-  // ---------------------------------
+  // ---------------------------------------
+  // CREATE / UPDATE / DELETE TASKS + MORE
+  // ---------------------------------------
 
-  // a) Add new task (single or multiple subtasks if GraphQL)
+  // a) Add a new task (and subtasks if needed)
   async function addTask(newTask) {
     try {
       if (!isGraphQL) {
-        // Step 1 - Create the main task
+        // REST path: create main task first
         const taskRes = await fetch("http://localhost:5050/api/tasks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -134,15 +129,14 @@ export function useTasks(isGraphQL) {
             completed: newTask.completed || false,
           }),
         });
-  
+
         if (!taskRes.ok) throw new Error("Failed to add task (REST)");
-  
         const createdTask = await taskRes.json();
-  
-        // Step 2 - Create subtasks (if any)
+
+        // Then create subtasks (if any)
         const subtasks = newTask.subtasks || [];
         const createdSubtasks = [];
-  
+
         for (const subtask of subtasks) {
           const subRes = await fetch("http://localhost:5050/api/subtasks", {
             method: "POST",
@@ -154,7 +148,7 @@ export function useTasks(isGraphQL) {
               completed: !!subtask.completed,
             }),
           });
-  
+
           if (subRes.ok) {
             const created = await subRes.json();
             createdSubtasks.push(created);
@@ -162,16 +156,15 @@ export function useTasks(isGraphQL) {
             console.warn("Failed to add subtask:", subtask.title);
           }
         }
-  
-        // Step 3 - Update state with task + subtasks
+
         setTasks((prev) =>
           deduplicateTasks([
             ...prev,
             { ...createdTask, subtasks: createdSubtasks },
           ])
-        );      
+        );
       } else {
-        // --- GraphQL ---
+        // GraphQL mutation to create task + subtasks in one go
         const response = await fetch("http://localhost:5050/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -191,29 +184,20 @@ export function useTasks(isGraphQL) {
                   completed: $completed,
                   subtasks: $subtasks
                 ) {
-                  id
-                  title
-                  content
-                  priority
-                  completed
-                  subtasks {
-                    id
-                    title
-                    content
-                    completed
-                  }
+                  id title content priority completed
+                  subtasks { id title content completed }
                 }
               }
             `,
             variables: newTask,
           }),
         });
+
         if (!response.ok) throw new Error("Failed to add task (GraphQL)");
         const result = await response.json();
-        if (result.errors) {
-          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-        }
+        if (result.errors) throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         const created = result.data.createTask;
+
         setTasks((prev) => deduplicateTasks([...prev, created]));
       }
     } catch (err) {
@@ -221,7 +205,7 @@ export function useTasks(isGraphQL) {
     }
   }
 
-  // b) Update an existing task
+  // b) Save/Update a task
   async function saveTask(id, updatedTask) {
     try {
       if (!isGraphQL) {
@@ -243,11 +227,7 @@ export function useTasks(isGraphQL) {
             query: `
               mutation($id: Int!, $title: String, $content: String, $priority: String, $completed: Boolean) {
                 updateTask(id: $id, title: $title, content: $content, priority: $priority, completed: $completed) {
-                  id
-                  title
-                  content
-                  priority
-                  completed
+                  id title content priority completed
                   subtasks { id title completed }
                 }
               }
@@ -257,9 +237,7 @@ export function useTasks(isGraphQL) {
         });
         if (!res.ok) throw new Error("Failed to update task (GraphQL)");
         const result = await res.json();
-        if (result.errors) {
-          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-        }
+        if (result.errors) throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         const updated = result.data.updateTask;
         setTasks((prev) =>
           prev.map((t) => (t.id === id ? { ...t, ...updated } : t))
@@ -270,7 +248,7 @@ export function useTasks(isGraphQL) {
     }
   }
 
-  // c) Delete a task
+  // c) Delete a task by ID
   async function deleteTask(id) {
     try {
       if (!isGraphQL) {
@@ -290,9 +268,7 @@ export function useTasks(isGraphQL) {
         });
         if (!res.ok) throw new Error("Failed to delete task (GraphQL)");
         const result = await res.json();
-        if (result.errors) {
-          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-        }
+        if (result.errors) throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         setTasks((prev) => prev.filter((t) => t.id !== id));
       }
     } catch (err) {
@@ -300,7 +276,7 @@ export function useTasks(isGraphQL) {
     }
   }
 
-  // d) Toggle main task complete
+  // d) Toggle task completion
   async function toggleComplete(id) {
     try {
       const target = tasks.find((t) => t.id === id);
@@ -324,8 +300,7 @@ export function useTasks(isGraphQL) {
             query: `
               mutation($id: Int!, $completed: Boolean) {
                 updateTask(id: $id, completed: $completed) {
-                  id
-                  completed
+                  id completed
                 }
               }
             `,
@@ -334,9 +309,7 @@ export function useTasks(isGraphQL) {
         });
         if (!res.ok) throw new Error("Failed to toggle completion (GraphQL)");
         const result = await res.json();
-        if (result.errors) {
-          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-        }
+        if (result.errors) throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         const updated = result.data.updateTask;
         setTasks((prev) =>
           prev.map((t) => (t.id === id ? { ...t, completed: updated.completed } : t))
@@ -347,7 +320,7 @@ export function useTasks(isGraphQL) {
     }
   }
 
-  // e) Create subtask (standalone for existing tasks)
+  // e) Create a subtask for an existing task
   async function createSubtask(taskId, subtaskData) {
     try {
       if (!isGraphQL) {
@@ -373,10 +346,7 @@ export function useTasks(isGraphQL) {
             query: `
               mutation($taskId: Int!, $title: String!, $content: String!, $completed: Boolean) {
                 createSubtask(taskId: $taskId, title: $title, content: $content, completed: $completed) {
-                  id
-                  title
-                  content
-                  completed
+                  id title content completed
                 }
               }
             `,
@@ -385,9 +355,7 @@ export function useTasks(isGraphQL) {
         });
         if (!res.ok) throw new Error("Failed to create subtask (GraphQL)");
         const result = await res.json();
-        if (result.errors) {
-          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-        }
+        if (result.errors) throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         const created = result.data.createSubtask;
         setTasks((prev) =>
           prev.map((t) =>
@@ -402,7 +370,7 @@ export function useTasks(isGraphQL) {
     }
   }
 
-  // f) Toggle subtask complete
+  // f) Toggle subtask completion
   async function toggleSubtaskComplete(taskId, subtaskId, currentCompleted) {
     const newCompleted = !currentCompleted;
     try {
@@ -432,10 +400,7 @@ export function useTasks(isGraphQL) {
             query: `
               mutation($id: Int!, $completed: Boolean) {
                 updateSubtask(id: $id, completed: $completed) {
-                  id
-                  title
-                  content
-                  completed
+                  id title content completed
                 }
               }
             `,
@@ -444,9 +409,7 @@ export function useTasks(isGraphQL) {
         });
         if (!res.ok) throw new Error("Failed to toggle subtask (GraphQL)");
         const result = await res.json();
-        if (result.errors) {
-          throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-        }
+        if (result.errors) throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
         const updated = result.data.updateSubtask;
         setTasks((prev) =>
           prev.map((t) =>

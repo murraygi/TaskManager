@@ -6,17 +6,23 @@ function TaskCreation(props) {
   const [isExpanded, setExpanded] = useState(false);
   const [task, setTask] = useState({ title: "", content: "", priority: "" });
 
-  // Track subtasks here
+  // For managing subtasks
   const [subtasks, setSubtasks] = useState([]);
+
+  // For basic form validation
   const [validationErrors, setValidationErrors] = useState({});
+
+  // Ref for detecting clicks outside the form
   const formRef = useRef(null);
 
+  // Update task fields on input/select/textarea change
   function handleChange(event) {
     const { name, value } = event.target;
     setTask((prev) => ({ ...prev, [name]: value }));
     setValidationErrors((prev) => ({ ...prev, [name]: "" }));
   }
 
+  // When user types in a subtask input
   function handleSubtaskChange(idx, event) {
     const { name, value } = event.target;
     setSubtasks((prev) => {
@@ -26,6 +32,7 @@ function TaskCreation(props) {
     });
   }
 
+  // Add a new empty subtask row
   function addSubtaskRow() {
     setSubtasks((prev) => [...prev, { title: "", content: "", completed: false }]);
   }
@@ -34,6 +41,7 @@ function TaskCreation(props) {
     setSubtasks((prev) => prev.filter((_, i) => i !== idx));
   }
 
+  // Submit the task (with validation)
   async function submitTask(event) {
     event.preventDefault();
     const errors = {};
@@ -52,10 +60,11 @@ function TaskCreation(props) {
       title: task.title,
       content: task.content,
       priority: task.priority || "Low",
-      // Only used by GraphQL path. If REST is selected, it just ignores it.
+      // Subtasks will only be used in GraphQL mode.
       subtasks: subtasks
     });
 
+    // Reset form
     setTask({ title: "", content: "", priority: "" });
     setSubtasks([]);
     setValidationErrors({});
@@ -66,6 +75,7 @@ function TaskCreation(props) {
     setExpanded(true);
   }
 
+  // Collapse form if user clicks outside it
   useEffect(() => {
     function handleClickOutside(e) {
       if (formRef.current && !formRef.current.contains(e.target)) {

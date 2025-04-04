@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 
 function TaskEditMode(props) {
+  // local state for the editable task fields
   const [task, setTask] = useState({
     title: props.task?.title || "",
     content: props.task?.content || "",
     priority: props.task?.priority || "",
   });
 
-  // Update the state when props change
+  // if props.task changes (e.g. selects a new task to edit), update the local state
   useEffect(() => {
     if (props.task) {
       setTask({
@@ -16,9 +17,9 @@ function TaskEditMode(props) {
         priority: props.task.priority || "",
       });
     }
-  }, [props.task]); // Re-run when any of the props change
+  }, [props.task]);
 
-  // Handle changes to inputs
+  // Handle changes to inputs/select/textarea
   function handleChange(event) {
     const { name, value } = event.target;
     setTask((prevTask) => ({
@@ -27,15 +28,15 @@ function TaskEditMode(props) {
     }));
   }
 
-  // Handle saving the edited task
+  // When the form is submitted, send updated task back to the parent
   function saveTask(event) {
     event.preventDefault();
-    props.onSave(props.id, task); // Pass the updated task back to the parent
+    props.onSave(props.id, task); // Parent handles the actual save logic 
   }
 
-  // Handle canceling the edit
+  // Cancel button exits edit mode via the parent callback
   function cancelEdit() {
-    props.onCancel(); // Reset editing mode in the parent component
+    props.onCancel();
   }
 
   return (

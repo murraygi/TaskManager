@@ -12,38 +12,42 @@ function TaskList({
   onCreateSubtask,
   toggleSubtaskComplete
 }) {
-  // Observer ref for the loading element
+  // IntersectionObserver to auto load more tasks as you scroll
   const observer = useRef();
-  // Reference to the loading element
+  // Reference to the loading element at the bottom of the list
   const loadingRef = useRef();
 
-  // REPLACEMENT: Throttled IntersectionObserver
 useEffect(() => {
   let timeout = null;
 
+  // Clean up any existing observer
   if (observer.current) {
     observer.current.disconnect();
   }
 
+  //Set up a new IntersectionObserver
   observer.current = new IntersectionObserver(entries => {
     if (entries[0].isIntersecting && hasMore && !loading) {
+      //Only trigger once every 500ms (basic debounce)
       if (!timeout) {
         console.log("Intersection observer triggered loadMore");
         loadMore();
 
         timeout = setTimeout(() => {
           timeout = null;
-        }, 500); // prevent spam by waiting 500ms
+        }, 500);
       }
     }
   }, {
-    rootMargin: '100px'
+    rootMargin: '100px' // Start loading before hitting the bottom
   });
 
+  // Attach observer to the loading element
   if (loadingRef.current) {
     observer.current.observe(loadingRef.current);
   }
 
+  // Cleanup on unmount
   return () => {
     if (observer.current) {
       observer.current.disconnect();
@@ -59,10 +63,10 @@ useEffect(() => {
       {tasks
         .slice()
         .sort((a, b) => {
-          // Incomplete first
+          // Show Incomplete tasks first
           if (!a.completed && b.completed) return -1;
           if (a.completed && !b.completed) return 1;
-          // Then by createdAt ascending
+          // Then sort by createdAt (oldest first)
           const aDate = new Date(a.createdAt || 0);
           const bDate = new Date(b.createdAt || 0);
           return aDate - bDate;
@@ -79,7 +83,7 @@ useEffect(() => {
           />
         ))}
 
-      {/* Loading indicator - this element is observed */}
+      {/* Bottom of list Loading indicator - this element is watched by the observer */}
       <div ref={loadingRef} className="loading-indicator">
         {loading && <p>Loading more tasks...</p>}
         {!hasMore && <p>No more tasks to load</p>}

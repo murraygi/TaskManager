@@ -4,7 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 function SubtaskList({ subtasks, onCreateSubtask, taskId, onToggleSubtaskComplete }) {
   const [showSubtasks, setShowSubtasks] = useState(false);
 
-  // Local state for subtask creation:
+  // Local state for subtask creation
   const [subtask, setSubtask] = useState({ title: "", content: "" });
 
   // Toggle subtasks
