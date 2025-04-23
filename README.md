@@ -17,49 +17,50 @@ This is a task management web app built with a Single Page Application (SPA) min
 
 ## Folder Structure
 
+```text
 task-manager-app/
 ├── apis/
-│ ├── config/
-│ │ ├── config.js
-│ │ └── database.js
-│ ├── controllers/
-│ │ ├── SubtaskController.js
-│ │ └── TaskController.js
-│ ├── graphql/
-│ │ ├── resolvers.js
-│ │ └── schema.js
-│ ├── migrations/
-│ └── rest/
-│ ├── models/
-│ │ ├── Subtask.js
-│ │ └── Task.js
-│ └── routes/
-│ ├── subtasks.js
-│ └── tasks.js
+│   ├── config/
+│   │   ├── config.js
+│   │   └── database.js
+│   ├── controllers/
+│   │   ├── SubtaskController.js
+│   │   └── TaskController.js
+│   ├── graphql/
+│   │   ├── resolvers.js
+│   │   └── schema.js
+│   ├── migrations/
+│   └── rest/
+│       ├── models/
+│       │   ├── Subtask.js
+│       │   └── Task.js
+│       └── routes/
+│           ├── subtasks.js
+│           └── tasks.js
 ├── dist/
 ├── node_modules/
 ├── public/
-│ └── styles.css
+│   └── styles.css
 ├── src/
-│ ├── components/
-│ │ ├── Footer.jsx
-│ │ ├── Header.jsx
-│ │ ├── SubtaskList.jsx
-│ │ ├── Task.jsx
-│ │ ├── TaskActions.jsx
-│ │ ├── TaskCreation.jsx
-│ │ ├── TaskEditMode.jsx
-│ │ └── TaskList.jsx
-│ ├── fonts/
-│ │ └── OpenSans-Regular.woff2
-│ ├── hooks/
-│ │ └── useTasks.js
-│ ├── App.jsx
-│ └── index.jsx
+│   ├── components/
+│   │   ├── Footer.jsx
+│   │   ├── Header.jsx
+│   │   ├── SubtaskList.jsx
+│   │   ├── Task.jsx
+│   │   ├── TaskActions.jsx
+│   │   ├── TaskCreation.jsx
+│   │   ├── TaskEditMode.jsx
+│   │   └── TaskList.jsx
+│   ├── fonts/
+│   │   └── OpenSans-Regular.woff2
+│   ├── hooks/
+│   │   └── useTasks.js
+│   ├── App.jsx
+│   └── index.jsx
 ├── tests/
-│ ├── generateBigData.js
-│ ├── generateData.js
-│ └── Test Plan.jmx
+│   ├── generateBigData.js
+│   ├── generateData.js
+│   └── Test Plan.jmx
 ├── .env
 ├── index.html
 ├── package.json
@@ -68,6 +69,8 @@ task-manager-app/
 ├── vite.config.js
 ├── .gitignore
 └── README.md
+```
+
 
 ### Explanation
 
