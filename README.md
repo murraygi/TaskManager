@@ -150,6 +150,8 @@ This project systematically evaluates the performance of REST and GraphQL APIs i
 # Install dependencies
 
 - Run `npm install` from the project root to install all necessary packages.
+- Install PostgreSQL - https://www.postgresql.org/docs/current/tutorial-install.html
+- Install JMeter - https://jmeter.apache.org/usermanual/get-started.html
 
 # Run server and client
 
