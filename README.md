@@ -29,7 +29,6 @@ task-manager-app/
 │   ├── graphql/
 │   │   ├── resolvers.js
 │   │   └── schema.js
-│   ├── migrations/
 │   └── rest/
 │       ├── models/
 │       │   ├── Subtask.js
@@ -60,7 +59,6 @@ task-manager-app/
 ├── tests/
 │   ├── generateBigData.js
 │   ├── generateData.js
-│   └── Test Plan.jmx
 ├── .env
 ├── index.html
 ├── package.json
